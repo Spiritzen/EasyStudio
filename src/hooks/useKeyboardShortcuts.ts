@@ -58,7 +58,27 @@ export function useKeyboardShortcuts({ onOpenProject, onOpenNewConfirm }: Option
       if (ctrl && e.key === 'g') { e.preventDefault(); groupSelected(canvasInstance); return; }
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        deleteSelected(canvasInstance);
+        const activeObjects = canvasInstance.getActiveObjects();
+        if (activeObjects.length > 0) {
+          deleteSelected(canvasInstance);
+        } else {
+          // No canvas selection — delete selected layer if any
+          const state = useCanvasStore.getState();
+          const { selectedId, layers } = state;
+          if (selectedId) {
+            const layer = layers.find((l) => l.id === selectedId);
+            if (layer?.isLayer) {
+              const children = layers.filter((l) => l.parentLayerId === layer.id);
+              children.forEach((child) => {
+                const obj = canvasInstance.getObjects().find((o: any) => o.id === child.id);
+                if (obj) canvasInstance.remove(obj);
+              });
+              if (children.length > 0) canvasInstance.requestRenderAll();
+              state.removeLayer(selectedId);
+              state.setActiveLayerId(null);
+            }
+          }
+        }
         return;
       }
 

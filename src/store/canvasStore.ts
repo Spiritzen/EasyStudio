@@ -51,6 +51,7 @@ interface CanvasStore {
   removeObjectFromLayer: (objectId: string) => void;
   toggleLayerExpanded: (layerId: string) => void;
   setActiveLayerId: (id: string | null) => void;
+  clearAllLayers: () => void;
 }
 
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
@@ -180,4 +181,6 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     })),
 
   setActiveLayerId: (id) => set({ activeLayerId: id }),
+
+  clearAllLayers: () => set({ layers: [], selectedId: null, activeLayerId: null }),
 }));

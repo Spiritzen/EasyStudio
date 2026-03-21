@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import type { LayerItem as LayerItemType } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
 import Tooltip from '../UI/Tooltip';
+import ConfirmDialog from '../UI/ConfirmDialog';
 import './LayersPanel.css';
 
 const TYPE_ICONS: Record<string, string> = {
@@ -22,13 +23,14 @@ interface Props {
   layer: LayerItemType;
   isSelected: boolean;
   indent?: boolean;
-  onContextMenu?: (e: React.MouseEvent, layerId: string) => void;
 }
 
-export default function LayerItemComponent({ layer, isSelected, indent, onContextMenu }: Props) {
+export default function LayerItemComponent({ layer, isSelected, indent }: Props) {
   const {
     updateLayer, setSelectedId, canvasInstance,
     layers, toggleLayerExpanded, setActiveLayerId, activeLayerId,
+    removeLayer, removeObjectFromLayer, reorderLayers,
+    addEmptyLayer, assignObjectToLayer,
   } = useCanvasStore();
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -39,6 +41,8 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
   const [renaming, setRenaming] = useState(false);
   const [renameVal, setRenameVal] = useState('');
   const renameRef = useRef<HTMLInputElement>(null);
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -48,10 +52,10 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
 
   const children = layers.filter((l) => l.parentLayerId === layer.id);
 
-  // ─── Rename — universal for ALL types ─────────────────────────────────────
+  // ─── Rename ──────────────────────────────────────────────────────────────
 
-  const startRename = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const startRename = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setRenameVal(layer.name);
     setRenaming(true);
   };
@@ -59,27 +63,17 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
   const commitRename = () => {
     const trimmed = renameVal.trim().slice(0, 40);
     if (trimmed && trimmed !== layer.name) {
-      // Update Zustand store
       updateLayer(layer.id, { name: trimmed });
-
-      // Sync Fabric object layerName (non-layer items only)
       if (!layer.isLayer && canvasInstance) {
         const obj = canvasInstance.getObjects().find((o: any) => o.id === layer.id);
-        if (obj) {
-          (obj as any).layerName = trimmed;
-          canvasInstance.requestRenderAll();
-        }
+        if (obj) { (obj as any).layerName = trimmed; canvasInstance.requestRenderAll(); }
       }
     }
     setRenaming(false);
   };
 
-  const cancelRename = () => {
-    setRenameVal(layer.name);
-    setRenaming(false);
-  };
+  const cancelRename = () => { setRenameVal(layer.name); setRenaming(false); };
 
-  // Focus + select all text when rename starts
   useEffect(() => {
     if (renaming && renameRef.current) {
       renameRef.current.focus();
@@ -87,7 +81,7 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
     }
   }, [renaming]);
 
-  // ─── Container handlers ────────────────────────────────────────────────────
+  // ─── Container handlers ───────────────────────────────────────────────────
 
   const handleContainerClick = () => {
     setSelectedId(layer.id);
@@ -99,7 +93,7 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
     toggleLayerExpanded(layer.id);
   };
 
-  // ─── Regular object handlers ───────────────────────────────────────────────
+  // ─── Select ──────────────────────────────────────────────────────────────
 
   const handleSelect = () => {
     if (layer.isLayer) { handleContainerClick(); return; }
@@ -112,11 +106,12 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
     }
   };
 
+  // ─── Visibility & lock ────────────────────────────────────────────────────
+
   const toggleVisibility = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!canvasInstance) return;
     const newVisible = !layer.visible;
-
     if (layer.isLayer) {
       children.forEach((child) => {
         const obj = canvasInstance.getObjects().find((o: any) => o.id === child.id);
@@ -136,7 +131,6 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
     e.stopPropagation();
     if (!canvasInstance) return;
     const locked = !layer.locked;
-
     if (layer.isLayer) {
       children.forEach((child) => {
         const obj = canvasInstance.getObjects().find((o: any) => o.id === child.id);
@@ -152,13 +146,130 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
     }
   };
 
-  const handleRightClick = (e: React.MouseEvent) => {
-    if (!layer.isLayer || !onContextMenu) return;
-    e.preventDefault();
-    onContextMenu(e, layer.id);
+  // ─── Delete ───────────────────────────────────────────────────────────────
+
+  const doDeleteObject = () => {
+    if (!canvasInstance) return;
+    const obj = canvasInstance.getObjects().find((o: any) => o.id === layer.id);
+    if (obj) { canvasInstance.remove(obj); canvasInstance.requestRenderAll(); }
+    // syncLayers() via object:removed event handles the store cleanup automatically
   };
 
-  // ─── Classes ────────────────────────────────────────────────────────────────
+  const doDeleteLayer = () => {
+    if (children.length === 0) {
+      removeLayer(layer.id);
+      setActiveLayerId(null);
+    } else {
+      setShowDeleteDialog(true);
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (layer.isLayer) { doDeleteLayer(); } else { doDeleteObject(); }
+  };
+
+  const handleDeleteLayerOnly = () => {
+    children.forEach((child) => removeObjectFromLayer(child.id));
+    removeLayer(layer.id);
+    setActiveLayerId(null);
+  };
+
+  const handleDeleteLayerAll = () => {
+    if (canvasInstance) {
+      children.forEach((child) => {
+        const obj = canvasInstance.getObjects().find((o: any) => o.id === child.id);
+        if (obj) canvasInstance.remove(obj);
+      });
+      if (children.length > 0) canvasInstance.requestRenderAll();
+    }
+    removeLayer(layer.id);
+    setActiveLayerId(null);
+  };
+
+  // ─── Duplicate ────────────────────────────────────────────────────────────
+
+  const handleDuplicate = () => {
+    setCtxMenu(null);
+    if (!canvasInstance) return;
+
+    if (layer.isLayer) {
+      const newLayerId = addEmptyLayer(`${layer.name} (copie)`);
+      children.forEach((child) => {
+        const obj = canvasInstance.getObjects().find((o: any) => o.id === child.id);
+        if (!obj) return;
+        (obj as any).clone((cloned: any) => {
+          cloned.set({
+            left: (obj.left ?? 0) + 10,
+            top: (obj.top ?? 0) + 10,
+            id: `obj_clone_${Date.now()}`,
+            layerName: child.name,
+          });
+          canvasInstance.add(cloned);
+          canvasInstance.renderAll();
+          setTimeout(() => assignObjectToLayer(cloned.id, newLayerId), 50);
+        });
+      });
+    } else {
+      const obj = canvasInstance.getObjects().find((o: any) => o.id === layer.id);
+      if (!obj) return;
+      (obj as any).clone((cloned: any) => {
+        cloned.set({
+          left: (obj.left ?? 0) + 10,
+          top: (obj.top ?? 0) + 10,
+          id: `obj_clone_${Date.now()}`,
+          layerName: `${layer.name} (copie)`,
+        });
+        canvasInstance.add(cloned);
+        canvasInstance.setActiveObject(cloned);
+        canvasInstance.renderAll();
+      });
+    }
+  };
+
+  // ─── Move up / down ───────────────────────────────────────────────────────
+
+  const handleMoveUp = () => {
+    setCtxMenu(null);
+    if (!canvasInstance || layer.isLayer) return;
+    const obj = canvasInstance.getObjects().find((o: any) => o.id === layer.id);
+    if (obj) { canvasInstance.bringForward(obj); canvasInstance.requestRenderAll(); }
+    const allLayers = useCanvasStore.getState().layers;
+    const idx = allLayers.findIndex((l) => l.id === layer.id);
+    if (idx > 0) reorderLayers(idx, idx - 1);
+  };
+
+  const handleMoveDown = () => {
+    setCtxMenu(null);
+    if (!canvasInstance || layer.isLayer) return;
+    const obj = canvasInstance.getObjects().find((o: any) => o.id === layer.id);
+    if (obj) { canvasInstance.sendBackwards(obj); canvasInstance.requestRenderAll(); }
+    const allLayers = useCanvasStore.getState().layers;
+    const idx = allLayers.findIndex((l) => l.id === layer.id);
+    if (idx < allLayers.length - 1) reorderLayers(idx, idx + 1);
+  };
+
+  // ─── Context menu ─────────────────────────────────────────────────────────
+
+  const handleRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCtxMenu({ x: e.clientX, y: e.clientY });
+  };
+
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const onDown = () => setCtxMenu(null);
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCtxMenu(null); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [ctxMenu]);
+
+  // ─── Classes ──────────────────────────────────────────────────────────────
 
   const isActiveLayer = layer.isLayer && activeLayerId === layer.id;
 
@@ -171,81 +282,131 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
     indent ? 'layer-item--child' : '',
   ].filter(Boolean).join(' ');
 
-  // ─── Render ──────────────────────────────────────────────────────────────────
+  // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={itemClass}
-      onClick={handleSelect}
-      onDoubleClick={startRename}   /* universal — all types */
-      onContextMenu={handleRightClick}
-    >
-      {/* Expand toggle (containers) or drag handle (objects) */}
-      {layer.isLayer ? (
-        <button
-          className="layer-expand-btn"
-          onClick={handleExpandToggle}
-          title={layer.isExpanded ? 'Réduire' : 'Déplier'}
-        >
-          {layer.isExpanded ? '▼' : '▸'}
-        </button>
-      ) : (
-        <span className="layer-drag" {...attributes} {...listeners} title="Glisser pour réordonner">
-          ⠿
-        </span>
-      )}
-
-      {/* Type icon */}
-      <span className="layer-icon">{TYPE_ICONS[layer.type] ?? '◻'}</span>
-
-      {/* Name area — input when renaming, text + pencil hint otherwise */}
-      {renaming ? (
-        <input
-          ref={renameRef}
-          className="layer-rename-input"
-          value={renameVal}
-          maxLength={40}
-          onChange={(e) => setRenameVal(e.target.value)}
-          onBlur={commitRename}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') commitRename();
-            if (e.key === 'Escape') cancelRename();
-          }}
-          onClick={(e) => e.stopPropagation()}
-        />
-      ) : (
-        <span className="layer-name-wrap" title="Double-clic pour renommer">
-          <span className="layer-name">{layer.name}</span>
-          <span className="layer-rename-hint" aria-hidden="true">✏</span>
-        </span>
-      )}
-
-      {/* Badge: children count when container is closed */}
-      {layer.isLayer && !layer.isExpanded && children.length > 0 && (
-        <span className="layer-children-badge">{children.length}</span>
-      )}
-
-      {/* Visibility + lock */}
-      <div className="layer-actions">
-        <Tooltip text="Masquer / afficher" hint="L'objet reste dans le projet" position="top">
+    <>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={itemClass}
+        onClick={handleSelect}
+        onDoubleClick={startRename}
+        onContextMenu={handleRightClick}
+      >
+        {/* Expand toggle (containers) or drag handle (objects) */}
+        {layer.isLayer ? (
           <button
-            className={`layer-btn ${layer.visible ? 'active' : 'inactive'}`}
-            onClick={toggleVisibility}
+            className="layer-expand-btn"
+            onClick={handleExpandToggle}
+            title={layer.isExpanded ? 'Réduire' : 'Déplier'}
           >
-            {layer.visible ? '👁' : '🚫'}
+            {layer.isExpanded ? '▼' : '▸'}
           </button>
-        </Tooltip>
-        <Tooltip text="Verrouiller / déverrouiller" hint="Un objet verrouillé ne peut pas être sélectionné" position="top">
-          <button
-            className={`layer-btn ${layer.locked ? 'active' : ''}`}
-            onClick={toggleLock}
-          >
-            {layer.locked ? '🔒' : '🔓'}
-          </button>
-        </Tooltip>
+        ) : (
+          <span className="layer-drag" {...attributes} {...listeners} title="Glisser pour réordonner">
+            ⠿
+          </span>
+        )}
+
+        {/* Type icon */}
+        <span className="layer-icon">{TYPE_ICONS[layer.type] ?? '◻'}</span>
+
+        {/* Name area */}
+        {renaming ? (
+          <input
+            ref={renameRef}
+            className="layer-rename-input"
+            value={renameVal}
+            maxLength={40}
+            onChange={(e) => setRenameVal(e.target.value)}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') commitRename();
+              if (e.key === 'Escape') cancelRename();
+            }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span className="layer-name-wrap" title="Double-clic pour renommer">
+            <span className="layer-name">{layer.name}</span>
+            <span className="layer-rename-hint" aria-hidden="true">✏</span>
+          </span>
+        )}
+
+        {/* Badge: children count when container is closed */}
+        {layer.isLayer && !layer.isExpanded && children.length > 0 && (
+          <span className="layer-children-badge">{children.length}</span>
+        )}
+
+        {/* Actions */}
+        <div className="layer-actions">
+          <Tooltip text="Masquer / afficher" hint="L'objet reste dans le projet" position="top">
+            <button
+              className={`layer-btn ${layer.visible ? 'active' : 'inactive'}`}
+              onClick={toggleVisibility}
+            >
+              {layer.visible ? '👁' : '🚫'}
+            </button>
+          </Tooltip>
+          <Tooltip text="Verrouiller / déverrouiller" hint="Un objet verrouillé ne peut pas être sélectionné" position="top">
+            <button
+              className={`layer-btn ${layer.locked ? 'active' : ''}`}
+              onClick={toggleLock}
+            >
+              {layer.locked ? '🔒' : '🔓'}
+            </button>
+          </Tooltip>
+          <Tooltip text="Supprimer" hint="Suppr ou clic" position="top">
+            <button className="layer-btn layer-btn--delete" onClick={handleDeleteClick}>
+              🗑️
+            </button>
+          </Tooltip>
+        </div>
       </div>
-    </div>
+
+      {/* Context menu */}
+      {ctxMenu && (
+        <div
+          className="layer-context-menu"
+          style={{ top: ctxMenu.y, left: ctxMenu.x }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button className="ctx-item" onClick={() => { setCtxMenu(null); startRename(); }}>
+            ✏️ Renommer
+          </button>
+          <button className="ctx-item" onClick={handleDuplicate}>
+            📋 Dupliquer
+          </button>
+          {!layer.isLayer && (
+            <>
+              <button className="ctx-item" onClick={handleMoveUp}>⬆️ Monter d'un rang</button>
+              <button className="ctx-item" onClick={handleMoveDown}>⬇️ Descendre d'un rang</button>
+            </>
+          )}
+          <div className="ctx-sep" />
+          <button
+            className="ctx-item ctx-item--danger"
+            onClick={() => { setCtxMenu(null); if (layer.isLayer) { doDeleteLayer(); } else { doDeleteObject(); } }}
+          >
+            🗑️ Supprimer
+          </button>
+        </div>
+      )}
+
+      {/* Delete confirmation for non-empty layers */}
+      {showDeleteDialog && (
+        <ConfirmDialog
+          title="🗑️ Supprimer le calque ?"
+          message={`Ce calque contient ${children.length} objet${children.length > 1 ? 's' : ''}.`}
+          buttons={[
+            { label: 'Annuler', variant: 'ghost', onClick: () => {} },
+            { label: 'Supprimer le calque seulement', variant: 'primary', onClick: handleDeleteLayerOnly },
+            { label: 'Tout supprimer', variant: 'danger', onClick: handleDeleteLayerAll },
+          ]}
+          onClose={() => setShowDeleteDialog(false)}
+        />
+      )}
+    </>
   );
 }
