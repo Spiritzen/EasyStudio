@@ -341,6 +341,21 @@
   letter-spacing: 0.06em;
 }
 
+.file-menu-section-label--gold {
+  color: var(--es-gold);
+  opacity: 0.7;
+  padding: 8px 12px 4px;
+  letter-spacing: 0.1em;
+}
+
+.file-menu-icon--gold {
+  color: var(--es-gold);
+  opacity: 0.85;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .file-menu-recent {
   background: none;
   border: none;

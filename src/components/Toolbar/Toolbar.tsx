@@ -155,7 +155,11 @@ export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpe
                   {tab}
                 </button>
                 {tab === 'Fichier' && openMenu === 'file' && (
-                  <FileMenu onClose={closeMenu} onNewProject={onNewProject} />
+                  <FileMenu
+                    onClose={closeMenu}
+                    onNewProject={onNewProject}
+                    onOpenAI={() => { closeMenu(); onTabChange('IA'); }}
+                  />
                 )}
                 {tab === 'Outils' && openMenu === 'tools' && (
                   <ToolsMenu onClose={closeMenu} />

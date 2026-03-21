@@ -8,17 +8,36 @@ import {
   type RecentProject,
 } from '../../utils/projectUtils';
 import { generateCode } from '../../utils/codeGenerator';
+import { addRect, addImage, addSVGFromFile } from '../../utils/fabricHelpers';
 import ConfirmDialog from '../UI/ConfirmDialog';
 import type { DialogButton } from '../UI/ConfirmDialog';
 
 interface Props {
   onClose: () => void;
   onNewProject: () => void;
+  onOpenAI?: () => void;
 }
 
-export default function FileMenu({ onClose, onNewProject }: Props) {
+const IcoShape = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2"/>
+  </svg>
+);
+const IcoUpload = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+  </svg>
+);
+const IcoAI = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+  </svg>
+);
+
+export default function FileMenu({ onClose, onNewProject, onOpenAI }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const { canvasInstance } = useCanvasStore();
   const { isDirty } = useProjectStore();
   const { openCodeModal } = useExportStore();
@@ -95,9 +114,53 @@ export default function FileMenu({ onClose, onNewProject }: Props) {
     openCodeModal(generateCode(canvasInstance));
   };
 
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !canvasInstance) return;
+    if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+      addSVGFromFile(canvasInstance, file);
+    } else {
+      const url = URL.createObjectURL(file);
+      addImage(canvasInstance, url);
+    }
+    e.target.value = '';
+    onClose();
+  };
+
+  const handleQuickShape = () => {
+    onClose();
+    if (canvasInstance) addRect(canvasInstance);
+  };
+
+  const handleQuickImport = () => {
+    onClose();
+    imageInputRef.current?.click();
+  };
+
+  const handleQuickAI = () => {
+    onClose();
+    onOpenAI?.();
+  };
+
   return (
     <>
       <div className="file-menu" ref={menuRef}>
+        {/* ── Démarrage rapide ── */}
+        <div className="file-menu-section-label file-menu-section-label--gold">Démarrage rapide</div>
+        <button className="file-menu-item" onClick={handleQuickShape}>
+          <span className="file-menu-icon file-menu-icon--gold"><IcoShape /></span>
+          <span className="file-menu-label">Ajouter une forme</span>
+        </button>
+        <button className="file-menu-item" onClick={handleQuickImport}>
+          <span className="file-menu-icon file-menu-icon--gold"><IcoUpload /></span>
+          <span className="file-menu-label">Importer un logo</span>
+        </button>
+        <button className="file-menu-item" onClick={handleQuickAI}>
+          <span className="file-menu-icon file-menu-icon--gold"><IcoAI /></span>
+          <span className="file-menu-label">Générer avec l'IA</span>
+        </button>
+        <div className="file-menu-sep" />
+
         <button className="file-menu-item" onClick={handleNew}>
           <span className="file-menu-icon">📄</span>
           <span className="file-menu-label">Nouveau projet</span>
@@ -153,6 +216,13 @@ export default function FileMenu({ onClose, onNewProject }: Props) {
         accept=".easylogo,.json"
         style={{ display: 'none' }}
         onChange={handleFileChange}
+      />
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*,.svg"
+        style={{ display: 'none' }}
+        onChange={handleImageFileChange}
       />
 
       {dialog && (
