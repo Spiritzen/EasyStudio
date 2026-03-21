@@ -3,6 +3,7 @@ import { fabric } from 'fabric';
 import { useCanvasStore } from '../../store/canvasStore';
 import type { LayerItem } from '../../types';
 import { getObjectType, addImageFromBlob } from '../../utils/fabricHelpers';
+import { fitToView } from '../../utils/zoomUtils';
 
 const SNAP_GRID = 8;
 
@@ -165,8 +166,22 @@ export function useCanvas(containerRef: React.RefObject<HTMLDivElement>) {
 
     pushHistory(JSON.stringify(fc.toJSON(['id', 'layerName'])));
 
+    // Auto-fit canvas to container on mount
+    requestAnimationFrame(() => {
+      if (containerRef.current) fitToView(fc, containerRef.current);
+    });
+
+    // Re-fit on window resize
+    const handleResize = () => {
+      if (containerRef.current && fabricRef.current) {
+        fitToView(fabricRef.current, containerRef.current);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
     return () => {
       window.removeEventListener('paste', handlePaste);
+      window.removeEventListener('resize', handleResize);
       fc.dispose();
     };
   }, []);

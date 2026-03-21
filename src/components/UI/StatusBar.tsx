@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
+import { applyZoom, fitToView, getLogicalSize } from '../../utils/zoomUtils';
 import './StatusBar.css';
 
 export default function StatusBar() {
@@ -8,13 +9,18 @@ export default function StatusBar() {
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 600 });
   const [selectionCount, setSelectionCount] = useState(0);
   const [selectionName, setSelectionName] = useState('');
+  const [editingZoom, setEditingZoom] = useState(false);
+  const [zoomInput, setZoomInput] = useState('');
+  const zoomInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!canvasInstance) return;
 
     const updateCanvasInfo = () => {
-      setZoom(Math.round(canvasInstance.getZoom() * 100));
-      setCanvasSize({ w: canvasInstance.getWidth(), h: canvasInstance.getHeight() });
+      const z = canvasInstance.getZoom();
+      setZoom(Math.round(z * 100));
+      const { w, h } = getLogicalSize(canvasInstance);
+      setCanvasSize({ w: Math.round(w), h: Math.round(h) });
     };
 
     const updateSelection = () => {
@@ -55,13 +61,62 @@ export default function StatusBar() {
     statusLeft = `✓ ${selectionCount} objets sélectionnés — Ctrl+G pour grouper`;
   }
 
+  const handleZoomIn = () => { if (canvasInstance) applyZoom(canvasInstance, canvasInstance.getZoom() + 0.1); };
+  const handleZoomOut = () => { if (canvasInstance) applyZoom(canvasInstance, canvasInstance.getZoom() - 0.1); };
+
+  const handleFit = () => {
+    if (!canvasInstance) return;
+    const container = canvasInstance.getElement().closest('.canvas-wrapper') as HTMLElement | null;
+    if (container) fitToView(canvasInstance, container);
+  };
+
+  const startEditZoom = () => {
+    setZoomInput(String(zoom));
+    setEditingZoom(true);
+    setTimeout(() => zoomInputRef.current?.select(), 0);
+  };
+
+  const commitZoom = () => {
+    const val = parseInt(zoomInput, 10);
+    if (!isNaN(val) && canvasInstance) {
+      applyZoom(canvasInstance, val / 100);
+    }
+    setEditingZoom(false);
+  };
+
+  const handleZoomKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') commitZoom();
+    if (e.key === 'Escape') setEditingZoom(false);
+  };
+
   return (
     <div className="status-bar">
       <span className="status-left">{statusLeft}</span>
       <div className="status-right">
         <span>{canvasSize.w} × {canvasSize.h} px</span>
         <span className="status-sep">·</span>
-        <span>{zoom}%</span>
+
+        {/* Zoom controls */}
+        <div className="status-zoom-controls">
+          <button className="status-zoom-btn status-zoom-step" onClick={handleZoomOut} title="Zoom arrière (Ctrl+−)">−</button>
+          {editingZoom ? (
+            <input
+              ref={zoomInputRef}
+              className="status-zoom-input"
+              value={zoomInput}
+              onChange={(e) => setZoomInput(e.target.value)}
+              onBlur={commitZoom}
+              onKeyDown={handleZoomKeyDown}
+              autoFocus
+            />
+          ) : (
+            <button className="status-zoom-btn status-zoom-pct" onClick={startEditZoom} title="Cliquer pour modifier le zoom">{zoom}%</button>
+          )}
+          <button className="status-zoom-btn status-zoom-step" onClick={handleZoomIn} title="Zoom avant (Ctrl++)">+</button>
+        </div>
+
+        <span className="status-sep">·</span>
+        <button className="status-zoom-btn status-fit-btn" onClick={handleFit} title="Ajuster à la fenêtre (Ctrl+0)">⊡</button>
         <span className="status-sep">·</span>
         <span>{objectCount} objet{objectCount !== 1 ? 's' : ''}</span>
       </div>

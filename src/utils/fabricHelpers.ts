@@ -6,11 +6,14 @@ const getId = () => `obj_${++objectCounter}_${Date.now()}`;
 // ─── Helpers internes ───────────────────────────────────────────────
 
 function centerOnCanvas(canvas: fabric.Canvas, obj: fabric.Object) {
-  const maxW = canvas.getWidth() * 0.65;
+  const zoom = canvas.getZoom();
+  const logW = canvas.getWidth() / zoom;
+  const logH = canvas.getHeight() / zoom;
+  const maxW = logW * 0.65;
   if ((obj as any).getScaledWidth?.() > maxW) obj.scaleToWidth(maxW);
   obj.set({
-    left: (canvas.getWidth() - obj.getScaledWidth()) / 2,
-    top: (canvas.getHeight() - obj.getScaledHeight()) / 2,
+    left: (logW - obj.getScaledWidth()) / 2,
+    top: (logH - obj.getScaledHeight()) / 2,
   });
   obj.setCoords();
 }
@@ -18,8 +21,11 @@ function centerOnCanvas(canvas: fabric.Canvas, obj: fabric.Object) {
 // ─── Formes de base ─────────────────────────────────────────────────
 
 export function addRect(canvas: fabric.Canvas) {
+  const zoom = canvas.getZoom();
+  const cw = canvas.getWidth() / zoom;
+  const ch = canvas.getHeight() / zoom;
   const rect = new fabric.Rect({
-    left: 100, top: 100, width: 160, height: 100,
+    left: (cw - 160) / 2, top: (ch - 100) / 2, width: 160, height: 100,
     fill: '#6c63ff', stroke: 'transparent', strokeWidth: 0, rx: 8, ry: 8,
   });
   (rect as any).id = getId();
@@ -31,8 +37,11 @@ export function addRect(canvas: fabric.Canvas) {
 }
 
 export function addCircle(canvas: fabric.Canvas) {
+  const zoom = canvas.getZoom();
+  const cw = canvas.getWidth() / zoom;
+  const ch = canvas.getHeight() / zoom;
   const circle = new fabric.Circle({
-    left: 120, top: 120, radius: 60,
+    left: (cw - 120) / 2, top: (ch - 120) / 2, radius: 60,
     fill: '#f97316', stroke: 'transparent', strokeWidth: 0,
   });
   (circle as any).id = getId();
@@ -44,8 +53,11 @@ export function addCircle(canvas: fabric.Canvas) {
 }
 
 export function addTriangle(canvas: fabric.Canvas) {
+  const zoom = canvas.getZoom();
+  const cw = canvas.getWidth() / zoom;
+  const ch = canvas.getHeight() / zoom;
   const tri = new fabric.Triangle({
-    left: 130, top: 130, width: 120, height: 120,
+    left: (cw - 120) / 2, top: (ch - 120) / 2, width: 120, height: 120,
     fill: '#22c55e', stroke: 'transparent', strokeWidth: 0,
   });
   (tri as any).id = getId();
@@ -57,8 +69,13 @@ export function addTriangle(canvas: fabric.Canvas) {
 }
 
 export function addText(canvas: fabric.Canvas, text = 'EasyStudio') {
+  const zoom = canvas.getZoom();
+  const cw = canvas.getWidth() / zoom;
+  const ch = canvas.getHeight() / zoom;
   const txt = new fabric.IText(text, {
-    left: 100, top: 150, fontFamily: 'Inter, sans-serif',
+    left: cw / 2, top: ch / 2,
+    originX: 'center', originY: 'center',
+    fontFamily: 'Inter, sans-serif',
     fontSize: 36, fill: '#ffffff', fontWeight: 'bold',
   });
   (txt as any).id = getId();
@@ -236,8 +253,9 @@ export function deleteSelected(canvas: fabric.Canvas) {
 // ─── Nouvelles formes ────────────────────────────────────────────────
 
 export function addLine(canvas: fabric.Canvas) {
-  const cw = canvas.getWidth();
-  const cy = canvas.getHeight() / 2;
+  const zoom = canvas.getZoom();
+  const cw = canvas.getWidth() / zoom;
+  const cy = canvas.getHeight() / zoom / 2;
   const line = new fabric.Line([cw * 0.25, cy, cw * 0.75, cy], {
     stroke: '#6c63ff',
     strokeWidth: 3,
@@ -279,9 +297,12 @@ export function addTextPreset(
     body:     { text: 'Texte',        fontSize: 16, fontWeight: 'normal', fill: '#a0a0c0' },
   };
   const c = configs[preset];
+  const zoom = canvas.getZoom();
+  const logW = canvas.getWidth() / zoom;
+  const logH = canvas.getHeight() / zoom;
   const tb = new fabric.Textbox(c.text, {
-    left: canvas.getWidth() / 2 - 120,
-    top: canvas.getHeight() / 2 - c.fontSize / 2,
+    left: logW / 2 - 120,
+    top: logH / 2 - c.fontSize / 2,
     width: 240,
     fontSize: c.fontSize,
     fontWeight: c.fontWeight,
@@ -346,8 +367,9 @@ export function alignObjects(canvas: fabric.Canvas, direction: AlignDirection) {
   if (objects.length === 1) {
     // Align single object to canvas
     const obj = objects[0];
-    const cw = canvas.getWidth();
-    const ch = canvas.getHeight();
+    const zoom = canvas.getZoom();
+    const cw = canvas.getWidth() / zoom;
+    const ch = canvas.getHeight() / zoom;
     const w = obj.getScaledWidth();
     const h = obj.getScaledHeight();
     if (direction === 'left')   obj.set('left', 0);

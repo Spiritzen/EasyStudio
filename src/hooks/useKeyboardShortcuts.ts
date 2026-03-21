@@ -3,6 +3,7 @@ import { useCanvasStore } from '../store/canvasStore';
 import { useUIStore } from '../store/uiStore';
 import { saveProject, newProject } from '../utils/projectUtils';
 import { deleteSelected, groupSelected, duplicateSelected, getObjectType } from '../utils/fabricHelpers';
+import { applyZoom, fitToView } from '../utils/zoomUtils';
 
 interface Options {
   onOpenProject: () => void;
@@ -26,6 +27,29 @@ export function useKeyboardShortcuts({ onOpenProject, onOpenNewConfirm }: Option
       if (ctrl && e.key === 's') { e.preventDefault(); saveProject(); return; }
 
       if (!canvasInstance) return;
+
+      // ── Zoom ──
+      if (ctrl && (e.key === '=' || e.key === '+')) {
+        e.preventDefault();
+        applyZoom(canvasInstance, canvasInstance.getZoom() + 0.1);
+        return;
+      }
+      if (ctrl && e.key === '-') {
+        e.preventDefault();
+        applyZoom(canvasInstance, canvasInstance.getZoom() - 0.1);
+        return;
+      }
+      if (ctrl && e.key === '0') {
+        e.preventDefault();
+        const container = canvasInstance.getElement().closest('.canvas-wrapper') as HTMLElement | null;
+        if (container) fitToView(canvasInstance, container);
+        return;
+      }
+      if (ctrl && e.key === '1') {
+        e.preventDefault();
+        applyZoom(canvasInstance, 1);
+        return;
+      }
 
       // ── Historique ──
       if (ctrl && e.key === 'z') {

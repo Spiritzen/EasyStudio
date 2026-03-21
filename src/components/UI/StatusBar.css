@@ -32,3 +32,55 @@
 .status-sep {
   color: #3a3a52;
 }
+
+/* ── Zoom controls ── */
+
+.status-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.status-zoom-btn {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1;
+  transition: color 0.12s, background 0.12s;
+}
+.status-zoom-btn:hover {
+  color: #b0b0d0;
+  background: #2a2a3e;
+}
+
+.status-zoom-step {
+  font-size: 13px;
+  padding: 0 4px;
+}
+
+.status-zoom-pct {
+  min-width: 34px;
+  text-align: center;
+}
+
+.status-zoom-input {
+  width: 36px;
+  background: #1a1a2e;
+  border: 1px solid #7c3aed;
+  border-radius: 3px;
+  color: #c5c5e0;
+  font-size: 10px;
+  padding: 0 3px;
+  text-align: center;
+  outline: none;
+  height: 16px;
+}
+
+.status-fit-btn {
+  font-size: 12px;
+}
+
