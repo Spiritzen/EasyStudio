@@ -125,7 +125,7 @@ export default function Footer() {
     <footer className="app-footer">
       {/* ── Left: copyright ── */}
       <div className="footer-left">
-        <span>© 2025 EasyStudio — créé par Sébastien Cantrelle</span>
+        <span>© {new Date().getFullYear()} EasyStudio — créé par Sébastien Cantrelle</span>
       </div>
 
       {/* ── Center: version ── */}
