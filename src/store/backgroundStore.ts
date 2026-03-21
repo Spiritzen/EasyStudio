@@ -13,7 +13,7 @@ interface BackgroundState {
   resetBackground: () => void;
 }
 
-const DEFAULT_COLOR = '#ffffff';
+const DEFAULT_COLOR = '#2a2a3a';
 const DEFAULT_OPACITY = 100;
 
 function load(): Partial<BackgroundState> {
