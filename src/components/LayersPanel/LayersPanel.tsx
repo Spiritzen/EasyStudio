@@ -15,6 +15,7 @@ import {
 } from '@dnd-kit/sortable';
 import { useCanvasStore } from '../../store/canvasStore';
 import LayerItemComponent from './LayerItem';
+import Tooltip from '../UI/Tooltip';
 import './LayersPanel.css';
 
 interface ContextMenu {
@@ -199,9 +200,11 @@ export default function LayersPanel() {
         <span>Calques</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="layer-count">{layers.length}</span>
-          <button className="btn-add-layer" onClick={handleAddLayer} title="Nouveau calque vide">
-            + Calque
-          </button>
+          <Tooltip content={"Nouveau calque vide\nGroupez vos objets dans\ndes dossiers logiques"}>
+            <button className="btn-add-layer" onClick={handleAddLayer}>
+              + Calque
+            </button>
+          </Tooltip>
         </div>
       </div>
 

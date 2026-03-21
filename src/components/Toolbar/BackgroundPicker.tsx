@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useBackgroundStore } from '../../store/backgroundStore';
+import Tooltip from '../UI/Tooltip';
 import './BackgroundPicker.css';
 
 const DARK_PRESETS = [
@@ -91,22 +92,23 @@ export default function BackgroundPicker() {
   return (
     <div className="bg-picker-wrapper" ref={wrapperRef}>
       {/* Trigger */}
-      <button
-        ref={btnRef}
-        className="bg-picker-btn"
-        onClick={() => (open ? setOpen(false) : openDropdown())}
-        title="Couleur de fond"
-      >
-        {bgTransparent ? (
-          <span className="bg-picker-swatch bg-picker-swatch--transparent" />
-        ) : (
-          <span
-            className="bg-picker-swatch"
-            style={{ backgroundColor: bgColor, opacity: bgOpacity / 100 }}
-          />
-        )}
-        <span>Fond</span>
-      </button>
+      <Tooltip content={"Arrière-plan de travail\nChange la couleur du fond (non exporté)"}>
+        <button
+          ref={btnRef}
+          className="bg-picker-btn"
+          onClick={() => (open ? setOpen(false) : openDropdown())}
+        >
+          {bgTransparent ? (
+            <span className="bg-picker-swatch bg-picker-swatch--transparent" />
+          ) : (
+            <span
+              className="bg-picker-swatch"
+              style={{ backgroundColor: bgColor, opacity: bgOpacity / 100 }}
+            />
+          )}
+          <span>Fond</span>
+        </button>
+      </Tooltip>
 
       {/* Dropdown */}
       {open && (

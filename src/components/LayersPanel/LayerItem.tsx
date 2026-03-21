@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { LayerItem as LayerItemType } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
+import Tooltip from '../UI/Tooltip';
 import './LayersPanel.css';
 
 const TYPE_ICONS: Record<string, string> = {
@@ -228,20 +229,22 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
 
       {/* Visibility + lock */}
       <div className="layer-actions">
-        <button
-          className={`layer-btn ${layer.visible ? 'active' : 'inactive'}`}
-          onClick={toggleVisibility}
-          title={layer.visible ? 'Masquer' : 'Afficher'}
-        >
-          {layer.visible ? '👁' : '🚫'}
-        </button>
-        <button
-          className={`layer-btn ${layer.locked ? 'active' : ''}`}
-          onClick={toggleLock}
-          title={layer.locked ? 'Déverrouiller' : 'Verrouiller'}
-        >
-          {layer.locked ? '🔒' : '🔓'}
-        </button>
+        <Tooltip content={"Masquer / afficher cet objet\nL'objet reste dans le projet"}>
+          <button
+            className={`layer-btn ${layer.visible ? 'active' : 'inactive'}`}
+            onClick={toggleVisibility}
+          >
+            {layer.visible ? '👁' : '🚫'}
+          </button>
+        </Tooltip>
+        <Tooltip content={"Verrouiller / déverrouiller\nUn objet verrouillé ne peut\npas être sélectionné"}>
+          <button
+            className={`layer-btn ${layer.locked ? 'active' : ''}`}
+            onClick={toggleLock}
+          >
+            {layer.locked ? '🔒' : '🔓'}
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

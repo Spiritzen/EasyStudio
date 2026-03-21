@@ -8,6 +8,8 @@ import EffectsPanel from './components/Effects/EffectsPanel';
 import AIPanel from './components/AIPanel/AIPanel';
 import CodeOutput from './components/CodeOutput/CodeOutput';
 import ToastContainer from './components/UI/Toast';
+import StatusBar from './components/UI/StatusBar';
+import OnboardingModal from './components/UI/OnboardingModal';
 import TemplatesModal from './components/Templates/TemplatesModal';
 import NewProjectModal from './components/Toolbar/NewProjectModal';
 import KeyboardShortcutsModal from './components/UI/KeyboardShortcutsModal';
@@ -74,9 +76,12 @@ export default function App() {
         )}
       </div>
 
+      <StatusBar />
+
       {/* ─── Modals & Overlays ─── */}
       <CodeOutput />
       <ToastContainer />
+      <OnboardingModal />
 
       {showTemplates && <TemplatesModal onClose={() => setShowTemplates(false)} />}
       {showShortcutsModal && <KeyboardShortcutsModal />}

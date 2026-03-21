@@ -6,6 +6,7 @@ import { toSVG, toPNG, toJPEG, toWebP, toPDF } from '../../utils/exportUtils';
 import { generateCode } from '../../utils/codeGenerator';
 import { generateHTMLPreview } from '../../utils/transitionEngine';
 import { toast } from '../../store/toastStore';
+import Tooltip from '../UI/Tooltip';
 import './Toolbar.css';
 
 const FORMATS = [
@@ -71,9 +72,11 @@ export default function ExportMenu() {
 
   return (
     <div className="export-wrapper" ref={menuRef}>
-      <button className="toolbar-btn export-btn" onClick={() => setOpen(!open)}>
-        {exporting ? <span className="tb-spinner" /> : '↓'} Exporter ▾
-      </button>
+      <Tooltip content={"Exporter — SVG · PNG · PDF · WebP · JPEG\nHTML/CSS avec code d'intégration"}>
+        <button className="toolbar-btn export-btn" onClick={() => setOpen(!open)}>
+          {exporting ? <span className="tb-spinner" /> : '↓'} Exporter ▾
+        </button>
+      </Tooltip>
 
       {open && (
         <div className="export-dropdown">

@@ -1,0 +1,143 @@
+.onboarding-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: onboarding-backdrop-in 0.2s ease;
+}
+
+.onboarding-modal {
+  background: #1e1e2e;
+  border: 1px solid #3a3a52;
+  border-radius: 12px;
+  padding: 28px 32px;
+  width: 390px;
+  max-width: 90vw;
+  animation: onboarding-modal-in 0.25s ease;
+}
+
+.onboarding-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.onboarding-icon {
+  font-size: 22px;
+}
+
+.onboarding-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e0e0f0;
+  margin: 0;
+}
+
+.onboarding-tagline {
+  color: #8b8ba7;
+  font-size: 12px;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.onboarding-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 20px;
+}
+
+.onboarding-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #c8c8e0;
+}
+
+.feat-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.onboarding-divider {
+  height: 1px;
+  background: #3a3a52;
+  margin-bottom: 16px;
+}
+
+.onboarding-tip {
+  display: flex;
+  gap: 12px;
+  background: #161622;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 24px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #8b8ba7;
+}
+
+.tip-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.onboarding-tip strong {
+  color: #c8c8e0;
+}
+
+.onboarding-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.onboarding-btn-ghost {
+  background: none;
+  border: 1px solid #3a3a52;
+  color: #8b8ba7;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.onboarding-btn-ghost:hover {
+  border-color: #7c3aed;
+  color: #e0e0f0;
+}
+
+.onboarding-btn-primary {
+  background: #7c3aed;
+  border: none;
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.onboarding-btn-primary:hover {
+  background: #6d28d9;
+}
+
+@keyframes onboarding-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes onboarding-modal-in {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

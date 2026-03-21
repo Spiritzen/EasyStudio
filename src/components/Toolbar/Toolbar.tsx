@@ -12,6 +12,7 @@ import FileMenu from './FileMenu';
 import ToolsMenu from './ToolsMenu';
 import URLImportModal from './URLImportModal';
 import BackgroundPicker from './BackgroundPicker';
+import Tooltip from '../UI/Tooltip';
 import './Toolbar.css';
 
 type Tab = 'Fichier' | 'Templates' | 'Outils' | 'IA';
@@ -167,33 +168,51 @@ export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpe
         {/* ─── Center: Quick shape tools + undo/redo ─── */}
         <div className="toolbar-center">
           <div className="tool-group">
-            <button className="tool-btn" onClick={() => canvasInstance && addRect(canvasInstance)} title="Rectangle">▭</button>
-            <button className="tool-btn" onClick={() => canvasInstance && addCircle(canvasInstance)} title="Cercle">○</button>
-            <button className="tool-btn" onClick={() => canvasInstance && addTriangle(canvasInstance)} title="Triangle">△</button>
-            <button className="tool-btn" onClick={() => canvasInstance && addText(canvasInstance)} title="Texte">T</button>
+            <Tooltip content={"Rectangle — Ajouter un rectangle\nRaccourci : R"}>
+              <button className="tool-btn" onClick={() => canvasInstance && addRect(canvasInstance)}>▭</button>
+            </Tooltip>
+            <Tooltip content={"Ellipse — Ajouter un cercle ou ovale\nRaccourci : E"}>
+              <button className="tool-btn" onClick={() => canvasInstance && addCircle(canvasInstance)}>○</button>
+            </Tooltip>
+            <Tooltip content={"Triangle — Ajouter un triangle\nRaccourci : T"}>
+              <button className="tool-btn" onClick={() => canvasInstance && addTriangle(canvasInstance)}>△</button>
+            </Tooltip>
+            <Tooltip content={"Texte — Ajouter une zone de texte\nRaccourci : W"}>
+              <button className="tool-btn" onClick={() => canvasInstance && addText(canvasInstance)}>T</button>
+            </Tooltip>
           </div>
 
           <div className="toolbar-divider" />
 
           <div className="tool-group">
-            <button className="tool-btn" onClick={() => fileInputRef.current?.click()} title="Image / SVG">🖼</button>
+            <Tooltip content={"Image — Importer depuis votre ordinateur\nFormats : PNG · JPG · SVG · WebP"}>
+              <button className="tool-btn" onClick={() => fileInputRef.current?.click()}>🖼</button>
+            </Tooltip>
             <input ref={fileInputRef} type="file" accept="image/*,.svg" style={{ display: 'none' }} onChange={handleFileChange} />
-            <button className="tool-btn" onClick={() => setShowURLModal(true)} title="URL image">🔗</button>
+            <Tooltip content={"Importer depuis une URL\nCollez le lien d'une image en ligne"}>
+              <button className="tool-btn" onClick={() => setShowURLModal(true)}>🔗</button>
+            </Tooltip>
             {/* ✏️ Dessin libre — temporairement retiré (v2) */}
           </div>
 
           <div className="toolbar-divider" />
 
           <div className="tool-group">
-            <button className="tool-btn" onClick={handleUndo} disabled={historyIndex <= 0} title="Annuler (Ctrl+Z)">↩</button>
-            <button className="tool-btn" onClick={handleRedo} disabled={historyIndex >= history.length - 1} title="Rétablir (Ctrl+Y)">↪</button>
+            <Tooltip content="Annuler — Ctrl+Z">
+              <button className="tool-btn" onClick={handleUndo} disabled={historyIndex <= 0}>↩</button>
+            </Tooltip>
+            <Tooltip content="Rétablir — Ctrl+Y">
+              <button className="tool-btn" onClick={handleRedo} disabled={historyIndex >= history.length - 1}>↪</button>
+            </Tooltip>
           </div>
         </div>
 
         {/* ─── Right ─── */}
         <div className="toolbar-right">
           <BackgroundPicker />
-          <button className="toolbar-btn share-btn">↑ Partager</button>
+          <Tooltip content={"Partager votre création\nCopiez le lien ou exportez"}>
+            <button className="toolbar-btn share-btn">↑ Partager</button>
+          </Tooltip>
           <ExportMenu />
         </div>
       </header>
