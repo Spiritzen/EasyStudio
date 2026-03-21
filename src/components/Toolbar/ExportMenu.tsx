@@ -72,7 +72,7 @@ export default function ExportMenu() {
 
   return (
     <div className="export-wrapper" ref={menuRef}>
-      <Tooltip content={"Exporter — SVG · PNG · PDF · WebP · JPEG\nHTML/CSS avec code d'intégration"}>
+      <Tooltip text="Exporter" hint="SVG · PNG · PDF · WebP · JPEG · HTML/CSS">
         <button className="toolbar-btn export-btn" onClick={() => setOpen(!open)}>
           {exporting ? <span className="tb-spinner" /> : '↓'} Exporter ▾
         </button>

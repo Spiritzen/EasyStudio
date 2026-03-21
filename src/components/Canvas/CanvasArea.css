@@ -109,6 +109,86 @@
   background-size: 16px 16px;
 }
 
+/* ─── Welcome overlay ─── */
+
+.canvas-welcome-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(42, 42, 58, 0.92);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 32px 40px;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-align: center;
+}
+
+.canvas-welcome-overlay--visible {
+  opacity: 1;
+  pointer-events: auto;
+  animation: welcome-fadein 0.4s ease;
+}
+
+@keyframes welcome-fadein {
+  from { opacity: 0; transform: translate(-50%, -48%); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+.welcome-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.welcome-subtitle {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 24px;
+}
+
+.welcome-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.welcome-card {
+  background: #1e1e2e;
+  border: 1px solid #3d3d5f;
+  border-radius: 10px;
+  padding: 16px 20px;
+  cursor: pointer;
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.welcome-card:hover {
+  border-color: #7c3aed;
+  transform: translateY(-2px);
+}
+
+.wc-icon { font-size: 24px; }
+.wc-label { font-size: 12px; font-weight: 500; color: #ccc; }
+.wc-hint  { font-size: 10px; color: #666; }
+
+.welcome-tip {
+  font-size: 11px;
+  color: #555;
+  border-top: 1px solid #2d2d3f;
+  padding-top: 16px;
+}
+
 /* ─── Grid overlay ─── */
 
 .canvas-grid-overlay {

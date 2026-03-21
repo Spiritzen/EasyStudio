@@ -92,7 +92,7 @@ export default function BackgroundPicker() {
   return (
     <div className="bg-picker-wrapper" ref={wrapperRef}>
       {/* Trigger */}
-      <Tooltip content={"Arrière-plan de travail\nChange la couleur du fond (non exporté)"}>
+      <Tooltip text="Arrière-plan de travail" hint="Non exporté">
         <button
           ref={btnRef}
           className="bg-picker-btn"

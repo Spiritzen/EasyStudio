@@ -64,7 +64,7 @@ export default function App() {
 
       <div className="app-body">
         <LayersPanel />
-        <CanvasArea />
+        <CanvasArea onOpenAI={() => setActiveTab('IA')} />
 
         {showAI ? (
           <AIPanel />

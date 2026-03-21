@@ -60,22 +60,60 @@
   padding: 4px 0;
 }
 
-.layers-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #6b6b8a;
-  font-size: 12px;
-  gap: 4px;
-  padding: 20px;
-  text-align: center;
+.layers-placeholder {
+  padding: 16px 12px;
+  animation: lp-fadein 0.4s ease;
 }
 
-.layers-hint {
+@keyframes lp-fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.lp-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #7c3aed;
+  margin-bottom: 8px;
+}
+
+.lp-body {
   font-size: 11px;
-  color: #4a4a6a;
+  color: #555;
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+.lp-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lp-list li {
+  font-size: 11px;
+  color: #444;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lp-icon {
+  font-size: 12px;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.lp-tip {
+  font-size: 10px;
+  color: #444;
+  font-style: italic;
+  border-top: 1px solid #2a2a3a;
+  padding-top: 8px;
+  margin-top: 4px;
 }
 
 /* ── Layer item — shared ── */

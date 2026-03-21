@@ -2,11 +2,13 @@ import { useState, useRef, type ReactNode } from 'react';
 import './Tooltip.css';
 
 interface TooltipProps {
-  content: string;
+  text: string;
+  hint?: string;
   children: ReactNode;
+  position?: 'bottom' | 'top' | 'left' | 'right';
 }
 
-export default function Tooltip({ content, children }: TooltipProps) {
+export default function Tooltip({ text, hint, children, position = 'bottom' }: TooltipProps) {
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -23,10 +25,9 @@ export default function Tooltip({ content, children }: TooltipProps) {
     <div className="tooltip-wrapper" onMouseEnter={show} onMouseLeave={hide}>
       {children}
       {visible && (
-        <div className="tooltip-box" role="tooltip">
-          {content.split('\n').map((line, i, arr) => (
-            <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
-          ))}
+        <div className={`tooltip-box tooltip-box--${position}`} role="tooltip">
+          <span>{text}</span>
+          {hint && <span className="tooltip-hint">{hint}</span>}
         </div>
       )}
     </div>

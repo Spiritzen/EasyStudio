@@ -229,7 +229,7 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
 
       {/* Visibility + lock */}
       <div className="layer-actions">
-        <Tooltip content={"Masquer / afficher cet objet\nL'objet reste dans le projet"}>
+        <Tooltip text="Masquer / afficher" hint="L'objet reste dans le projet" position="top">
           <button
             className={`layer-btn ${layer.visible ? 'active' : 'inactive'}`}
             onClick={toggleVisibility}
@@ -237,7 +237,7 @@ export default function LayerItemComponent({ layer, isSelected, indent, onContex
             {layer.visible ? '👁' : '🚫'}
           </button>
         </Tooltip>
-        <Tooltip content={"Verrouiller / déverrouiller\nUn objet verrouillé ne peut\npas être sélectionné"}>
+        <Tooltip text="Verrouiller / déverrouiller" hint="Un objet verrouillé ne peut pas être sélectionné" position="top">
           <button
             className={`layer-btn ${layer.locked ? 'active' : ''}`}
             onClick={toggleLock}

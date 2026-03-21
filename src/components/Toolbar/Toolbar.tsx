@@ -168,16 +168,16 @@ export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpe
         {/* ─── Center: Quick shape tools + undo/redo ─── */}
         <div className="toolbar-center">
           <div className="tool-group">
-            <Tooltip content={"Rectangle — Ajouter un rectangle\nRaccourci : R"}>
+            <Tooltip text="Rectangle" hint="Raccourci : R">
               <button className="tool-btn" onClick={() => canvasInstance && addRect(canvasInstance)}>▭</button>
             </Tooltip>
-            <Tooltip content={"Ellipse — Ajouter un cercle ou ovale\nRaccourci : E"}>
+            <Tooltip text="Ellipse / Cercle" hint="Raccourci : E">
               <button className="tool-btn" onClick={() => canvasInstance && addCircle(canvasInstance)}>○</button>
             </Tooltip>
-            <Tooltip content={"Triangle — Ajouter un triangle\nRaccourci : T"}>
+            <Tooltip text="Triangle" hint="Raccourci : T">
               <button className="tool-btn" onClick={() => canvasInstance && addTriangle(canvasInstance)}>△</button>
             </Tooltip>
-            <Tooltip content={"Texte — Ajouter une zone de texte\nRaccourci : W"}>
+            <Tooltip text="Zone de texte" hint="Raccourci : W">
               <button className="tool-btn" onClick={() => canvasInstance && addText(canvasInstance)}>T</button>
             </Tooltip>
           </div>
@@ -185,11 +185,11 @@ export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpe
           <div className="toolbar-divider" />
 
           <div className="tool-group">
-            <Tooltip content={"Image — Importer depuis votre ordinateur\nFormats : PNG · JPG · SVG · WebP"}>
+            <Tooltip text="Importer une image" hint="PNG · JPG · SVG · WebP">
               <button className="tool-btn" onClick={() => fileInputRef.current?.click()}>🖼</button>
             </Tooltip>
             <input ref={fileInputRef} type="file" accept="image/*,.svg" style={{ display: 'none' }} onChange={handleFileChange} />
-            <Tooltip content={"Importer depuis une URL\nCollez le lien d'une image en ligne"}>
+            <Tooltip text="Importer depuis une URL" hint="Collez un lien d'image">
               <button className="tool-btn" onClick={() => setShowURLModal(true)}>🔗</button>
             </Tooltip>
             {/* ✏️ Dessin libre — temporairement retiré (v2) */}
@@ -198,10 +198,10 @@ export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpe
           <div className="toolbar-divider" />
 
           <div className="tool-group">
-            <Tooltip content="Annuler — Ctrl+Z">
+            <Tooltip text="Annuler" hint="Ctrl+Z">
               <button className="tool-btn" onClick={handleUndo} disabled={historyIndex <= 0}>↩</button>
             </Tooltip>
-            <Tooltip content="Rétablir — Ctrl+Y">
+            <Tooltip text="Rétablir" hint="Ctrl+Y">
               <button className="tool-btn" onClick={handleRedo} disabled={historyIndex >= history.length - 1}>↪</button>
             </Tooltip>
           </div>
@@ -210,7 +210,7 @@ export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpe
         {/* ─── Right ─── */}
         <div className="toolbar-right">
           <BackgroundPicker />
-          <Tooltip content={"Partager votre création\nCopiez le lien ou exportez"}>
+          <Tooltip text="Partager votre création">
             <button className="toolbar-btn share-btn">↑ Partager</button>
           </Tooltip>
           <ExportMenu />

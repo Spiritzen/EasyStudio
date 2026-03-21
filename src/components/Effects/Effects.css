@@ -32,13 +32,9 @@
   font-weight: 600;
 }
 
-.effects-empty {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6b6b8a;
-  font-size: 12px;
+.effects-placeholder {
+  padding: 16px 12px;
+  animation: ip-fadein 0.4s ease;
 }
 
 .effects-content {

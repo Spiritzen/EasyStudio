@@ -200,7 +200,7 @@ export default function LayersPanel() {
         <span>Calques</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="layer-count">{layers.length}</span>
-          <Tooltip content={"Nouveau calque vide\nGroupez vos objets dans\ndes dossiers logiques"}>
+          <Tooltip text="Nouveau calque vide" hint="Organisez vos objets en groupes logiques">
             <button className="btn-add-layer" onClick={handleAddLayer}>
               + Calque
             </button>
@@ -210,9 +210,16 @@ export default function LayersPanel() {
 
       {/* Empty state */}
       {rootLayers.length === 0 ? (
-        <div className="layers-empty">
-          <p>Aucun calque</p>
-          <p className="layers-hint">Ajoutez des formes via la barre d'outils</p>
+        <div className="layers-placeholder">
+          <div className="lp-title">📋 Vos calques</div>
+          <div className="lp-body">Chaque forme, texte ou image crée un calque.</div>
+          <ul className="lp-list">
+            <li><span className="lp-icon">👁</span> Masquer / afficher</li>
+            <li><span className="lp-icon">🔒</span> Verrouiller</li>
+            <li><span className="lp-icon">✏️</span> Renommer (double-clic)</li>
+            <li><span className="lp-icon">📁</span> Grouper en calque</li>
+          </ul>
+          <div className="lp-tip">Utilisez [+ Calque] pour créer un groupe logique</div>
         </div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

@@ -81,8 +81,17 @@ export default function EffectsPanel() {
       {activeTab === 'transitions' ? (
         <TransitionsPanel />
       ) : !selectedId ? (
-        <div className="effects-empty">
-          <p>Sélectionnez un objet</p>
+        <div className="effects-placeholder">
+          <div className="ip-title">✨ Effets visuels</div>
+          <div className="ip-body">Sélectionnez un objet pour appliquer :</div>
+          <ul className="ip-list">
+            <li>🌫️ Flou gaussien</li>
+            <li>🔲 Coins arrondis</li>
+            <li>🌑 Ombre portée</li>
+          </ul>
+          <div className="ip-tip">
+            ⚡ Onglet Transitions pour animer entre deux états de votre design
+          </div>
         </div>
       ) : (
         <div className="effects-content">
