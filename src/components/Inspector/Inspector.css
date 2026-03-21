@@ -40,8 +40,9 @@
   flex-shrink: 0;
 }
 
-.inspector-placeholder {
-  padding: 16px 12px;
+.inspector-placeholder,
+.effects-placeholder {
+  padding: 20px 14px;
   animation: ip-fadein 0.4s ease;
 }
 
@@ -51,17 +52,19 @@
 }
 
 .ip-title {
-  font-size: 12px;
-  font-weight: 500;
-  color: #7c3aed;
-  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--es-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
 }
 
 .ip-body {
   font-size: 11px;
-  color: #555;
-  margin-bottom: 8px;
-  line-height: 1.6;
+  color: var(--es-text-secondary);
+  margin-bottom: 10px;
+  line-height: 1.7;
 }
 
 .ip-list {
@@ -70,21 +73,25 @@
   margin: 0 0 10px 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .ip-list li {
   font-size: 11px;
-  color: #444;
+  color: #6a6458;
+  padding: 3px 8px;
+  border-left: 2px solid rgba(240,165,0,0.2);
+  border-radius: 0 4px 4px 0;
+  line-height: 1.5;
 }
 
 .ip-tip {
   font-size: 10px;
-  color: #444;
+  color: #4a4438;
   font-style: italic;
-  border-top: 1px solid #2a2a3a;
-  padding-top: 8px;
-  line-height: 1.5;
+  padding-top: 10px;
+  border-top: 1px solid rgba(240,165,0,0.08);
+  line-height: 1.6;
 }
 
 .inspector-content {

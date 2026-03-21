@@ -1,13 +1,14 @@
 .status-bar {
   height: 24px;
-  background: #161622;
-  border-top: 1px solid #2a2a3e;
+  background: #080810;
+  border-top: 1px solid rgba(240,165,0,0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
   flex-shrink: 0;
   gap: 12px;
+  letter-spacing: 0.04em;
 }
 
 .status-left {

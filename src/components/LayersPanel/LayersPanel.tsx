@@ -118,15 +118,15 @@ export default function LayersPanel() {
       {/* Empty state */}
       {rootLayers.length === 0 ? (
         <div className="layers-placeholder">
-          <div className="lp-title">📋 Vos calques</div>
+          <div className="lp-title">Vos calques</div>
           <div className="lp-body">Chaque forme, texte ou image crée un calque.</div>
           <ul className="lp-list">
-            <li><span className="lp-icon">👁</span> Masquer / afficher</li>
-            <li><span className="lp-icon">🔒</span> Verrouiller</li>
-            <li><span className="lp-icon">✏️</span> Renommer (double-clic)</li>
-            <li><span className="lp-icon">📁</span> Grouper en calque</li>
+            <li>Masquer / afficher</li>
+            <li>Verrouiller</li>
+            <li>Renommer — double-clic</li>
+            <li>Grouper en calque</li>
           </ul>
-          <div className="lp-tip">Utilisez [+ Calque] pour créer un groupe logique</div>
+          <div className="lp-tip">Utilisez + Calque pour créer un groupe logique</div>
         </div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

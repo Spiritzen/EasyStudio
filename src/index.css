@@ -1,4 +1,20 @@
 /* EasyStudio – reset only, layout in App.css */
+
+:root {
+  --es-gold:           #f0a500;
+  --es-gold-light:     #ffc94d;
+  --es-gold-dim:       rgba(240,165,0,0.15);
+  --es-gold-border:    rgba(240,165,0,0.35);
+  --es-text-primary:   #f0ece4;
+  --es-text-secondary: #a09880;
+  --es-text-dim:       #5a5445;
+  --es-bg-deep:        #0d0d14;
+  --es-bg-card:        rgba(255,255,255,0.04);
+  --es-bg-card-hover:  rgba(255,255,255,0.07);
+  --es-purple:         #7c3aed;
+  --es-purple-dim:     rgba(124,58,237,0.2);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;

@@ -104,27 +104,33 @@ export default function CanvasArea({ onOpenAI }: Props) {
 
       {/* Welcome overlay — shown when canvas is empty */}
       <div className={`canvas-welcome-overlay${showWelcome ? ' canvas-welcome-overlay--visible' : ''}`}>
-        <div className="welcome-title">⚡ EasyStudio</div>
+        <div className="welcome-title">EasyStudio</div>
         <div className="welcome-subtitle">Créez logos, vignettes et animations exportables</div>
         <div className="welcome-cards">
           <div className="welcome-card" onClick={() => canvasInstance && addRect(canvasInstance)}>
-            <span className="wc-icon">□</span>
+            <span className="wc-icon">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            </span>
             <span className="wc-label">Ajouter une forme</span>
             <span className="wc-hint">Rectangle, cercle, texte...</span>
           </div>
           <div className="welcome-card" onClick={() => fileWelcomeRef.current?.click()}>
-            <span className="wc-icon">🖼️</span>
+            <span className="wc-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            </span>
             <span className="wc-label">Importer un logo</span>
             <span className="wc-hint">PNG · JPG · SVG · WebP</span>
           </div>
           <div className="welcome-card" onClick={onOpenAI}>
-            <span className="wc-icon">✨</span>
+            <span className="wc-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </span>
             <span className="wc-label">Générer avec l'IA</span>
             <span className="wc-hint">Décrivez votre logo</span>
           </div>
         </div>
         <div className="welcome-tip">
-          💡 Glissez une image directement ici pour commencer
+          Glissez une image ici pour commencer
         </div>
       </div>
 

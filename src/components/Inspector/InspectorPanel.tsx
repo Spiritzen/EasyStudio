@@ -89,17 +89,17 @@ export default function InspectorPanel() {
 
       {!selectedId ? (
         <div className="inspector-placeholder">
-          <div className="ip-title">🎯 Propriétés</div>
+          <div className="ip-title">Propriétés</div>
           <div className="ip-body">Cliquez sur un objet pour modifier :</div>
           <ul className="ip-list">
-            <li>📐 Position et dimensions</li>
-            <li>🎨 Couleur de remplissage</li>
-            <li>✏️ Contour et épaisseur</li>
-            <li>🔤 Police et texte</li>
-            <li>💫 Opacité et rotation</li>
+            <li>Position et dimensions</li>
+            <li>Couleur de remplissage</li>
+            <li>Contour et épaisseur</li>
+            <li>Police et texte</li>
+            <li>Opacité et rotation</li>
           </ul>
           <div className="ip-tip">
-            💡 Maintenez Shift pour sélectionner plusieurs objets à la fois
+            Maintenez Shift pour sélectionner plusieurs objets
           </div>
         </div>
       ) : (

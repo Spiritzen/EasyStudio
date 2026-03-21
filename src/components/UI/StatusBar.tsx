@@ -54,11 +54,11 @@ export default function StatusBar() {
 
   let statusLeft: string;
   if (selectionCount === 0) {
-    statusLeft = '💡 Cliquez sur une forme · Ctrl+Z pour annuler · Ctrl+S pour sauvegarder';
+    statusLeft = 'Cliquez sur une forme · Ctrl+Z pour annuler · Ctrl+S pour sauvegarder';
   } else if (selectionCount === 1) {
-    statusLeft = `✓ ${selectionName} sélectionné — Suppr pour effacer · Ctrl+D pour dupliquer · Double-clic sur le nom pour renommer`;
+    statusLeft = `${selectionName} sélectionné — Suppr pour effacer · Ctrl+D pour dupliquer · Double-clic sur le nom pour renommer`;
   } else {
-    statusLeft = `✓ ${selectionCount} objets sélectionnés — Ctrl+G pour grouper`;
+    statusLeft = `${selectionCount} objets sélectionnés — Ctrl+G pour grouper`;
   }
 
   const handleZoomIn = () => { if (canvasInstance) applyZoom(canvasInstance, canvasInstance.getZoom() + 0.1); };
