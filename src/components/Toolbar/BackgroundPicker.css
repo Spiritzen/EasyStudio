@@ -1,0 +1,240 @@
+/* ── Background Picker ──────────────────────────────────────────────────── */
+
+.bg-picker-wrapper {
+  position: relative;
+}
+
+/* ── Trigger button ── */
+
+.bg-picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #2d2d45;
+  border: 1px solid #3d3d5f;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #c5c5e0;
+  font-size: 11px;
+  transition: border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.bg-picker-btn:hover {
+  border-color: #7c3aed;
+  background: #3a3a52;
+}
+
+.bg-picker-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+
+.bg-picker-swatch--transparent {
+  background:
+    linear-gradient(45deg, #aaa 25%, transparent 25%),
+    linear-gradient(-45deg, #aaa 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #aaa 75%),
+    linear-gradient(-45deg, transparent 75%, #aaa 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 0 3px, 3px -3px, -3px 0;
+  background-color: #fff;
+}
+
+/* ── Dropdown ── */
+
+.bg-picker-dropdown {
+  position: fixed;
+  z-index: 999;
+  background: #1e1e2e;
+  border: 1px solid #3a3a55;
+  border-radius: 10px;
+  padding: 12px;
+  width: 248px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+}
+
+/* ── Section label ── */
+
+.bg-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b6b8a;
+  margin-bottom: 6px;
+  margin-top: 10px;
+}
+.bg-section-label:first-child {
+  margin-top: 0;
+}
+
+/* ── Transparent button ── */
+
+.bg-transparent-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  background: #2a2a3f;
+  border: 1px solid #3a3a55;
+  border-radius: 7px;
+  cursor: pointer;
+  color: #c5c5e0;
+  font-size: 12px;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+}
+.bg-transparent-btn:hover,
+.bg-transparent-btn.active {
+  border-color: #7c3aed;
+  background: #3a2a5a;
+}
+
+.bg-damier {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+  background:
+    linear-gradient(45deg, #aaa 25%, transparent 25%),
+    linear-gradient(-45deg, #aaa 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #aaa 75%),
+    linear-gradient(-45deg, transparent 75%, #aaa 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+  background-color: #fff;
+}
+
+/* ── Color grid ── */
+
+.bg-color-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+.bg-color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+  padding: 0;
+  flex-shrink: 0;
+}
+.bg-color-swatch:hover {
+  transform: scale(1.15);
+  border-color: rgba(255,255,255,0.4);
+}
+.bg-color-swatch.active {
+  border-color: #7c3aed;
+  transform: scale(1.1);
+  box-shadow: 0 0 0 2px #7c3aed55;
+}
+
+/* ── Custom hex row ── */
+
+.bg-hex-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bg-hex-input {
+  flex: 1;
+  background: #2a2a3f;
+  border: 1px solid #3a3a55;
+  border-radius: 6px;
+  color: #e0e0f5;
+  font-size: 12px;
+  font-family: monospace;
+  padding: 5px 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.bg-hex-input:focus {
+  border-color: #7c3aed;
+}
+.bg-hex-input.invalid {
+  border-color: #ff6b80;
+  color: #ff6b80;
+}
+
+.bg-color-native {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  border: 1px solid #3a3a55;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: none;
+}
+.bg-color-native::-webkit-color-swatch-wrapper { padding: 0; }
+.bg-color-native::-webkit-color-swatch { border: none; border-radius: 4px; }
+
+/* ── Separator ── */
+
+.bg-sep {
+  height: 1px;
+  background: #3a3a52;
+  margin: 10px 0 6px;
+}
+
+/* ── Opacity ── */
+
+.bg-opacity-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bg-opacity-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #3a3a55;
+  outline: none;
+  cursor: pointer;
+}
+.bg-opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #7c3aed;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.bg-opacity-val {
+  font-size: 11px;
+  color: #8888a8;
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Export badge ── */
+
+.bg-export-badge {
+  display: block;
+  text-align: center;
+  font-size: 10px;
+  color: #1d9e75;
+  margin-top: 10px;
+  padding: 5px 8px;
+  background: #1d9e7515;
+  border-radius: 6px;
+  border: 1px solid #1d9e7530;
+}

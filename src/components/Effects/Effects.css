@@ -1,0 +1,105 @@
+.effects-panel {
+  background: #2d2d3f;
+  border-left: 1px solid #3a3a52;
+  border-top: 1px solid #3a3a52;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* ── Tab bar ── */
+.effects-tabs {
+  display: flex;
+  width: 100%;
+  border-bottom: 1px solid #3a3a52;
+}
+
+.effects-tab {
+  flex: 1;
+  padding: 9px 8px;
+  background: transparent;
+  border: none;
+  color: #8888a8;
+  font-size: 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.effects-tab:hover { color: #c5c5e0; }
+.effects-tab.active {
+  color: #9b8eff;
+  border-bottom-color: #9b8eff;
+  font-weight: 600;
+}
+
+.effects-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b6b8a;
+  font-size: 12px;
+}
+
+.effects-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.shadow-control {
+  padding: 0;
+}
+
+.shadow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.shadow-fields {
+  margin-top: 8px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #3a3a52;
+  border-radius: 18px;
+  transition: 0.2s;
+}
+
+.toggle-slider:before {
+  content: '';
+  position: absolute;
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background: #8b8ba7;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: #5a4b8a;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(14px);
+  background: #d4b8ff;
+}

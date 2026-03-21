@@ -1,0 +1,138 @@
+/* ─── EasyStudio – Global Layout ─── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #13131f;
+  color: #e0e0f0;
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── App Shell ─── */
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh; /* mobile safe */
+  overflow: hidden;
+}
+
+.app-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ─── Right Panel (Inspector + Effects stacked) ─── */
+
+.right-panel {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.right-panel > :first-child {
+  flex: 3;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.right-panel > :last-child {
+  flex: 2;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ─── Scrollbars ─── */
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a3a52;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5a5a7a;
+}
+
+/* ─── Shared panel pieces ─── */
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8b8ba7;
+  border-bottom: 1px solid #3a3a52;
+  flex-shrink: 0;
+}
+
+/* ─── Range inputs ─── */
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: #3a3a52;
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #9d7fea;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #1e1e2e;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #9d7fea;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #1e1e2e;
+}
+
+/* ─── Focus ring ─── */
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #7c6bc7;
+  outline-offset: 1px;
+}

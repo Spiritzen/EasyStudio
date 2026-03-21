@@ -1,0 +1,360 @@
+/* ── Layers Panel ──────────────────────────────────────────────────────── */
+
+.layers-panel {
+  width: 240px;
+  background: #2d2d3f;
+  border-right: 1px solid #3a3a52;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative; /* for context menu */
+}
+
+/* ── Header ── */
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8b8ba7;
+  border-bottom: 1px solid #3a3a52;
+  flex-shrink: 0;
+}
+
+.layer-count {
+  background: #3a3a52;
+  color: #a0a0c0;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 10px;
+}
+
+/* ── [+ Calque] button ── */
+
+.btn-add-layer {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px solid #3d3d5f;
+  border-radius: 4px;
+  color: #888;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-add-layer:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+/* ── List ── */
+
+.layers-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px 0;
+}
+
+.layers-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6b6b8a;
+  font-size: 12px;
+  gap: 4px;
+  padding: 20px;
+  text-align: center;
+}
+
+.layers-hint {
+  font-size: 11px;
+  color: #4a4a6a;
+}
+
+/* ── Layer item — shared ── */
+
+.layer-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 1px 4px;
+  font-size: 12px;
+  color: #c5c5e0;
+  transition: background 0.1s;
+  user-select: none;
+  border-left: 2px solid transparent;
+}
+
+.layer-item:hover {
+  background: #3a3a52;
+}
+
+.layer-item.selected {
+  background: #4a3f6b;
+  color: #d4b8ff;
+}
+
+.layer-item.locked {
+  opacity: 0.6;
+}
+
+/* ── Layer container (📁) ── */
+
+.layer-item--container {
+  font-weight: 500;
+}
+
+.layer-item--active-target {
+  background: #2a2a4a;
+  border-left: 2px solid #7c3aed;
+}
+
+/* ── Child item (indented) ── */
+
+.layer-item--child {
+  padding-left: 28px;
+  margin-left: 8px;
+  font-size: 11px;
+}
+
+/* ── Drag handle ── */
+
+.layer-drag {
+  cursor: grab;
+  color: #5a5a7a;
+  font-size: 14px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+.layer-drag:active { cursor: grabbing; }
+
+/* ── Expand button ── */
+
+.layer-expand-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8888a8;
+  font-size: 10px;
+  padding: 2px 3px;
+  flex-shrink: 0;
+  line-height: 1;
+  border-radius: 3px;
+  transition: color 0.15s, background 0.15s;
+}
+.layer-expand-btn:hover {
+  color: #c5c5e0;
+  background: #3a3a52;
+}
+
+/* ── Icons & name ── */
+
+.layer-icon {
+  font-size: 13px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.layer-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Name wrapper + pencil hint ── */
+
+.layer-name-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.layer-rename-hint {
+  font-size: 10px;
+  opacity: 0;
+  flex-shrink: 0;
+  color: #9b8eff;
+  transition: opacity 0.15s;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.layer-item:hover .layer-rename-hint {
+  opacity: 0.45;
+}
+
+/* ── Rename input ── */
+
+.layer-rename-input {
+  flex: 1;
+  background: #1a1a2e;
+  border: 1px solid #7c3aed;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 12px;
+  padding: 1px 4px;
+  outline: none;
+  width: 100%;
+}
+
+/* ── Children count badge ── */
+
+.layer-children-badge {
+  background: #3d3d5f;
+  color: #aaa;
+  border-radius: 10px;
+  font-size: 10px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+}
+
+/* ── Children section ── */
+
+.layer-children {
+  border-left: 1px dashed #3d3d5f;
+  margin-left: 20px;
+  margin-bottom: 2px;
+}
+
+.layer-child-tree-line {
+  cursor: pointer;
+}
+
+.layer-empty-hint {
+  font-size: 10px;
+  color: #4a4a6a;
+  padding: 4px 12px 4px 28px;
+  font-style: italic;
+}
+
+/* ── Actions ── */
+
+.layer-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.layer-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+.layer-btn:hover,
+.layer-btn.active { opacity: 1; }
+.layer-btn.inactive { opacity: 0.3; }
+
+/* ── Context menu ── */
+
+.layer-context-menu {
+  position: fixed;
+  z-index: 999;
+  background: #252538;
+  border: 1px solid #3a3a55;
+  border-radius: 8px;
+  padding: 4px;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 12px;
+  background: none;
+  border: none;
+  border-radius: 5px;
+  color: #c5c5e0;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+.ctx-item:hover { background: #3a3a55; }
+.ctx-item--danger { color: #ff6b80; }
+.ctx-item--danger:hover { background: #ff4d6d22; }
+
+.ctx-sep {
+  height: 1px;
+  background: #3a3a52;
+  margin: 4px 8px;
+}
+
+/* ── Delete confirm overlay ── */
+
+.layer-delete-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 20, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.layer-delete-dialog {
+  background: #252538;
+  border: 1px solid #3a3a55;
+  border-radius: 10px;
+  padding: 16px;
+  max-width: 200px;
+  text-align: center;
+}
+
+.layer-delete-dialog p {
+  font-size: 12px;
+  color: #c5c5e0;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.layer-delete-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.layer-del-btn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  border: 1px solid #3a3a55;
+  background: #3a3a55;
+  color: #e0e0f5;
+  transition: background 0.15s;
+}
+.layer-del-btn:hover { background: #4a4a6a; }
+.layer-del-btn--danger {
+  background: #ff4d6d22;
+  border-color: #ff4d6d55;
+  color: #ff6b80;
+}
+.layer-del-btn--danger:hover { background: #ff4d6d44; }
+.layer-del-btn--ghost {
+  background: transparent;
+  color: #8888a8;
+}

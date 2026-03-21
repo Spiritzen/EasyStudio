@@ -1,0 +1,114 @@
+.tpl-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.tpl-modal {
+  background: #1e1e2e;
+  border: 1px solid #3a3a52;
+  border-radius: 14px;
+  width: min(92vw, 820px);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  animation: dialog-in 0.18s ease;
+}
+
+.tpl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1px solid #3a3a52;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e0e0f0;
+  flex-shrink: 0;
+}
+
+.tpl-close {
+  background: none;
+  border: 1px solid #3a3a52;
+  border-radius: 6px;
+  color: #8b8ba7;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 10px;
+}
+.tpl-close:hover { background: #3a3a52; color: #e0e0f0; }
+
+.tpl-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tpl-category {}
+
+.tpl-cat-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #6b6b8a;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.tpl-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tpl-card {
+  background: #2d2d3f;
+  border: 1px solid #3a3a52;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  transition: all 0.15s;
+  min-width: 120px;
+}
+
+.tpl-card:hover {
+  border-color: #7c6bc7;
+  background: #342d52;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(108, 75, 199, 0.2);
+}
+
+.tpl-preview {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.tpl-card-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #c5c5e0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tpl-card-size {
+  font-size: 10px;
+  color: #6b6b8a;
+}

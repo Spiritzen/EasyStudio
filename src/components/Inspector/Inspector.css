@@ -1,0 +1,207 @@
+/* ─── Décomposer groupe ─── */
+
+.ungroup-btn {
+  width: 100%;
+  background: #2a2040;
+  border: 1px solid #5a4b8a;
+  border-radius: 6px;
+  color: #c4a0ff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s;
+  margin-bottom: 6px;
+}
+
+.ungroup-btn:hover {
+  background: #3a2d5a;
+  border-color: #7c6bc7;
+  color: #d4b8ff;
+}
+
+.ungroup-hint {
+  font-size: 10px;
+  color: #5a5a7a;
+  line-height: 1.4;
+}
+
+
+.inspector-panel {
+  width: 260px;
+  background: #2d2d3f;
+  border-left: 1px solid #3a3a52;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.inspector-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b6b8a;
+  font-size: 12px;
+}
+
+.inspector-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+
+.inspector-section {
+  padding: 10px 12px;
+  border-bottom: 1px solid #3a3a52;
+}
+
+.section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #8b8ba7;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.prop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.prop-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prop-grid label span {
+  font-size: 9px;
+  color: #8b8ba7;
+  text-transform: uppercase;
+}
+
+.prop-grid input {
+  background: #1e1e2e;
+  border: 1px solid #3a3a52;
+  border-radius: 4px;
+  color: #e0e0f0;
+  font-size: 12px;
+  padding: 4px 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.prop-grid input:focus {
+  outline: none;
+  border-color: #7c6bc7;
+}
+
+.prop-labels {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.prop-labels span {
+  font-size: 9px;
+  color: #6b6b8a;
+  text-align: center;
+}
+
+.fill-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #c5c5e0;
+}
+
+.fill-row span {
+  min-width: 60px;
+  font-size: 11px;
+  color: #8b8ba7;
+}
+
+.fill-row input[type='color'] {
+  width: 32px;
+  height: 24px;
+  border: 1px solid #3a3a52;
+  border-radius: 4px;
+  padding: 1px;
+  background: #1e1e2e;
+  cursor: pointer;
+}
+
+.fill-row input[type='number'] {
+  background: #1e1e2e;
+  border: 1px solid #3a3a52;
+  border-radius: 4px;
+  color: #e0e0f0;
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+.fill-row select {
+  flex: 1;
+  background: #1e1e2e;
+  border: 1px solid #3a3a52;
+  border-radius: 4px;
+  color: #e0e0f0;
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+.transparent-btn {
+  background: none;
+  border: 1px solid #3a3a52;
+  border-radius: 4px;
+  color: #8b8ba7;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 14px;
+}
+
+.transparent-btn.active {
+  background: #3a3a52;
+  color: #d0b0ff;
+}
+
+.obj-type-badge {
+  background: #4a3f6b;
+  color: #c4a0ff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.typo-buttons {
+  display: flex;
+  gap: 3px;
+}
+
+.typo-btn {
+  background: #1e1e2e;
+  border: 1px solid #3a3a52;
+  border-radius: 4px;
+  color: #c5c5e0;
+  cursor: pointer;
+  padding: 3px 8px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.typo-btn.active {
+  background: #4a3f6b;
+  border-color: #7c6bc7;
+  color: #d4b8ff;
+}
