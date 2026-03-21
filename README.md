@@ -241,7 +241,8 @@ Amiens, France · Télétravail possible
 
 **⭐ Si EasyStudio vous est utile, une étoile sur GitHub c'est toujours apprécié !**
 
-*EasyStudio · MIT License · 2025*
+*EasyStudio · MIT License · 2026*
+
 
 </div>
 

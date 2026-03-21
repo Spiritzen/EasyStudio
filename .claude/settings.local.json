@@ -8,7 +8,12 @@
       "Bash(node -e \"console.log\\(require\\(''./node_modules/gsap/package.json''\\).version\\)\")",
       "Bash(echo \"EXIT_CODE: $?\")",
       "Bash(echo \"EXIT:$?\")",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(xargs wc:*)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
