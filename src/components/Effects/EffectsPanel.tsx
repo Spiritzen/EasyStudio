@@ -36,33 +36,73 @@ export default function EffectsPanel() {
     const obj = getObj();
     if (!obj) { setBlur(0); setBorderRadius(0); return; }
     const objAny = obj as any;
-    const blurFilter = (objAny.filters as fabric.IBaseFilter[] | undefined)?.find(
-      (f: any) => f.type === 'Blur'
-    ) as any;
-    setBlur(blurFilter ? Math.round((blurFilter.blur || 0) * 100) : 0);
-    if (obj.type === 'rect') {
-      setBorderRadius((obj as fabric.Rect).rx || 0);
+
+    if (obj.type === 'image') {
+      // Images : lire depuis le filtre natif Fabric
+      const blurFilter = (objAny.filters ?? []).find((f: any) => f.type === 'Blur') as any;
+      setBlur(blurFilter ? Math.round((blurFilter.blur ?? 0) * 100) : 0);
+    } else {
+      // Formes & texte : lire depuis la valeur stockée sur l'objet
+      setBlur((objAny._blurValue as number) ?? 0);
     }
+
+    if (obj.type === 'rect') setBorderRadius((obj as fabric.Rect).rx || 0);
+    else setBorderRadius(0);
   }, [selectedId]);
 
-  // Applique réellement le filtre Blur sur l'objet Fabric (opération lourde)
+  // ── Applique le flou gaussien ────────────────────────────────────────────
+  // CAS image  → pipeline natif fabric.Image.filters.Blur + applyFilters()
+  // CAS formes → patch _render avec ctx.filter (seule méthode fiable en v5)
   const applyBlur = (value: number) => {
     const obj = getObj();
     if (!obj || !canvasInstance) return;
     const objAny = obj as any;
-    const blurVal = value / 100;
-    if (value === 0) {
-      objAny.filters = (objAny.filters as fabric.IBaseFilter[] | undefined)?.filter((f: any) => f.type !== 'Blur') || [];
-    } else {
-      const existing = (objAny.filters as fabric.IBaseFilter[] | undefined)?.find((f: any) => f.type === 'Blur') as any;
-      if (existing) { existing.blur = blurVal; }
-      else {
-        if (!objAny.filters) objAny.filters = [];
-        objAny.filters.push(new fabric.Image.filters.Blur({ blur: blurVal }) as any);
+
+    if (obj.type === 'image') {
+      // ── Images : filtre natif Fabric ────────────────────────────────────
+      const blurVal = value / 100;
+      if (value === 0) {
+        objAny.filters = (objAny.filters ?? []).filter((f: any) => f.type !== 'Blur');
+      } else {
+        const existing = (objAny.filters ?? []).find((f: any) => f.type === 'Blur') as any;
+        if (existing) {
+          existing.blur = blurVal;
+        } else {
+          objAny.filters = [
+            ...(objAny.filters ?? []),
+            new fabric.Image.filters.Blur({ blur: blurVal }),
+          ];
+        }
       }
+      objAny.applyFilters();
+    } else {
+      // ── Formes & texte : patch _render avec ctx.filter ──────────────────
+      // Fabric v5 n'expose pas applyFilters() sur les objets vectoriels.
+      // On injecte le filtre CSS directement dans le contexte de rendu.
+      objAny._blurValue = value;
+
+      if (value === 0) {
+        if (objAny._originalRender) {
+          objAny._render = objAny._originalRender;
+          delete objAny._originalRender;
+        }
+      } else {
+        const blurPx = Math.round(value * 0.4); // 0-100 → 0-40 px
+        if (!objAny._originalRender) {
+          objAny._originalRender = objAny._render.bind(objAny);
+        }
+        const originalRender = objAny._originalRender as (ctx: CanvasRenderingContext2D) => void;
+        objAny._render = function (this: unknown, ctx: CanvasRenderingContext2D) {
+          ctx.save();
+          ctx.filter = `blur(${blurPx}px)`;
+          originalRender.call(this, ctx);
+          ctx.restore();
+        };
+      }
+      obj.set('dirty', true);
     }
-    objAny.applyFilters?.();
-    canvasInstance.renderAll();
+
+    canvasInstance.requestRenderAll();
   };
 
   const applyBorderRadius = (value: number) => {
