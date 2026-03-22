@@ -1,3 +1,10 @@
+/**
+ * @file ExportMenu.tsx
+ * @description Menu déroulant d'export permettant de télécharger le canvas dans différents
+ * formats : SVG, PDF, PNG, WebP, JPEG, HTML/CSS statique et HTML animé (avec transitions).
+ * @module components/Toolbar/ExportMenu
+ */
+
 import { useState, useRef, useEffect } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { useExportStore } from '../../store/exportStore';
@@ -19,6 +26,12 @@ const FORMATS = [
   { id: 'animated',  label: 'HTML animé', icon: '🎬', desc: 'Transition exportée' },
 ] as const;
 
+/**
+ * @component ExportMenu
+ * @description Bouton "Exporter" avec menu déroulant listant tous les formats disponibles.
+ * Gère l'état de chargement pendant l'export et affiche un spinner.
+ * @returns JSX du composant ExportMenu.
+ */
 export default function ExportMenu() {
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState<string | null>(null);

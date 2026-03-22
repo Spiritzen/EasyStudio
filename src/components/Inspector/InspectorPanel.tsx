@@ -1,3 +1,11 @@
+/**
+ * @file InspectorPanel.tsx
+ * @description Panneau d'inspection des propriétés de l'objet sélectionné sur le canvas.
+ * Affiche et permet de modifier : position (X, Y), dimensions (L, H), rotation, opacité,
+ * remplissage/contour (FillStroke) et typographie si l'objet est un texte.
+ * @module components/Inspector/InspectorPanel
+ */
+
 import { useEffect, useState } from 'react';
 import { fabric } from 'fabric';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -25,6 +33,12 @@ function propsFromObject(obj: fabric.Object): ObjProps {
   };
 }
 
+/**
+ * @component InspectorPanel
+ * @description Panneau latéral droit affichant et permettant de modifier les propriétés
+ * géométriques et visuelles de l'objet sélectionné sur le canvas Fabric.js.
+ * @returns JSX du composant InspectorPanel.
+ */
 export default function InspectorPanel() {
   const { selectedId, selectedObject, canvasInstance } = useCanvasStore();
   const [props, setProps] = useState<ObjProps>(DEFAULT);

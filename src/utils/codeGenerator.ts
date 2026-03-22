@@ -1,10 +1,29 @@
+/**
+ * @file codeGenerator.ts
+ * @description Génère du code HTML/CSS statique à partir des objets présents sur le canvas Fabric.js.
+ * Produit un bloc intégrable directement dans une page web, sans dépendance externe.
+ * @module utils/codeGenerator
+ */
+
 import { fabric } from 'fabric';
 
+/**
+ * Convertit une valeur de couleur Fabric (string, Pattern ou Gradient) en chaîne CSS.
+ * @param color - La couleur Fabric à convertir.
+ * @returns La couleur en chaîne CSS, ou 'transparent' pour les types non supportés.
+ */
 function colorToCss(color: string | fabric.Pattern | fabric.Gradient): string {
   if (typeof color === 'string') return color;
   return 'transparent';
 }
 
+/**
+ * Génère le HTML et le CSS correspondant à un seul objet Fabric.
+ * Gère les types rect, circle, text/i-text et produit un fallback SVG pour les autres.
+ * @param obj - L'objet Fabric à convertir.
+ * @param index - L'index de l'objet (utilisé pour l'identifiant CSS).
+ * @returns Un objet contenant les fragments html et css générés.
+ */
 function generateObjectCSS(obj: fabric.Object, index: number): { html: string; css: string } {
   const left = Math.round(obj.left || 0);
   const top = Math.round(obj.top || 0);
@@ -56,6 +75,12 @@ function generateObjectCSS(obj: fabric.Object, index: number): { html: string; c
   return { html: `  <!-- Element ${index} (${obj.type}) -->\n  ${svgEl}`, css: '' };
 }
 
+/**
+ * Génère un bloc HTML/CSS complet représentant le contenu du canvas sous forme statique.
+ * Le code produit est autonome et intégrable directement dans une page HTML.
+ * @param canvas - L'instance Fabric.js active dont on veut exporter le contenu.
+ * @returns Une chaîne contenant le bloc HTML avec les styles CSS embarqués.
+ */
 export function generateCode(canvas: fabric.Canvas): string {
   const objects = canvas.getObjects();
   const canvasW = canvas.getWidth();

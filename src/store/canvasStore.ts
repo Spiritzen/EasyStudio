@@ -1,10 +1,26 @@
+/**
+ * @file canvasStore.ts
+ * @description Store Zustand principal gérant l'état du canvas Fabric.js :
+ * calques, sélection, historique undo/redo, mode dessin et conteneurs de calques.
+ * @module store/canvasStore
+ */
+
 import { create } from 'zustand';
 import type { LayerItem, HistoryState } from '../types';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FabricCanvas = any;
 
+/**
+ * @typedef BrushType
+ * @description Type de pinceau disponible en mode dessin libre (prévu pour la v2).
+ */
 export type BrushType = 'pencil' | 'brush' | 'marker' | 'eraser';
 
+/**
+ * @interface CanvasStore
+ * @description Contrat complet du store canvas : état + actions.
+ * Géré par Zustand pour un accès réactif dans toute l'application.
+ */
 interface CanvasStore {
   layers: LayerItem[];
   selectedId: string | null;
@@ -55,8 +71,13 @@ interface CanvasStore {
   setActiveLayerId: (id: string | null) => void;
   clearAllLayers: () => void;
   resetCounters: () => void;
+  clearHistory: () => void;
 }
 
+/**
+ * Hook Zustand exposant l'état et les actions du canvas EasyStudio.
+ * @returns L'état complet du store canvas (calques, historique, outils).
+ */
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
   layers: [],
   selectedId: null,
@@ -187,7 +208,9 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
 
   setActiveLayerId: (id) => set({ activeLayerId: id }),
 
-  clearAllLayers: () => set({ layers: [], selectedId: null, activeLayerId: null }),
+  clearAllLayers: () => set({ layers: [], selectedId: null, selectedObject: null, activeLayerId: null }),
 
   resetCounters: () => set({ drawingPathCount: 0, emptyLayerCount: 0 }),
+
+  clearHistory: () => set({ history: [], historyIndex: -1 }),
 }));

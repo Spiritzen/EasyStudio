@@ -1,3 +1,11 @@
+/**
+ * @file TransitionsPanel.tsx
+ * @description Panneau de gestion des transitions animées entre états du canvas.
+ * Permet de capturer des états, de configurer les paramètres de transition
+ * (type, easing, durée, délai, stagger) et de prévisualiser ou exporter l'animation.
+ * @module components/Transitions/TransitionsPanel
+ */
+
 import { useState, useRef, useEffect } from 'react';
 import { useTransitionStore } from '../../store/transitionStore';
 import type { TransitionType, EasingType, TransitionConfig } from '../../store/transitionStore';
@@ -30,6 +38,13 @@ const EASING_TYPES: { value: EasingType; label: string }[] = [
   { value: 'circ.out',    label: 'Circulaire' },
 ];
 
+/**
+ * @component TransitionsPanel
+ * @description Interface de création et prévisualisation des transitions animées.
+ * Affiche la grille d'états capturés, les contrôles de configuration et les boutons
+ * de lecture (simple/boucle/stop) et d'export (CSS, HTML animé).
+ * @returns JSX du composant TransitionsPanel.
+ */
 export default function TransitionsPanel() {
   const {
     states,
@@ -122,14 +137,26 @@ export default function TransitionsPanel() {
   };
 
   // ── Export ──
-  const handleCopyCSS = () => {
+  const handleCopyCSS = async () => {
     if (!fromStateId || !toStateId) { toast.error('Sélectionnez De et Vers'); return; }
     const config: TransitionConfig = {
       id: 'export', fromStateId: fromStateId!, toStateId: toStateId!, ...draft,
     };
-    const names = states.map((s) => s.name);
-    navigator.clipboard.writeText(generateCSSKeyframes(config, names))
-      .then(() => toast.success('CSS copié ✓'));
+    const css = generateCSSKeyframes(config, states.map((s) => s.name));
+    try {
+      await navigator.clipboard.writeText(css);
+      toast.success('CSS copié ✓');
+    } catch {
+      const input = document.createElement('input');
+      input.value = css;
+      input.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(input);
+      input.focus();
+      input.select();
+      try { document.execCommand('copy'); toast.success('CSS copié ✓'); }
+      catch { toast.error('Copie impossible — sélectionnez manuellement'); }
+      document.body.removeChild(input);
+    }
   };
 
   const handleDownloadHTML = () => {

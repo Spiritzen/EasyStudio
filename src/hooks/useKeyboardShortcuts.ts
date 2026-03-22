@@ -1,3 +1,11 @@
+/**
+ * @file useKeyboardShortcuts.ts
+ * @description Hook React enregistrant les raccourcis clavier globaux d'EasyStudio.
+ * Gère : projet (Ctrl+N/O/S), zoom (Ctrl+=/−/0/1), historique (Ctrl+Z/Y),
+ * édition (Ctrl+D/G, Suppr), échap et aide (F1).
+ * @module hooks/useKeyboardShortcuts
+ */
+
 import { useEffect } from 'react';
 import { useCanvasStore } from '../store/canvasStore';
 import { useUIStore } from '../store/uiStore';
@@ -5,11 +13,20 @@ import { saveProject, newProject } from '../utils/projectUtils';
 import { deleteSelected, groupSelected, duplicateSelected, getObjectType } from '../utils/fabricHelpers';
 import { applyZoom, fitToView } from '../utils/zoomUtils';
 
+/**
+ * @interface Options
+ * @description Options du hook useKeyboardShortcuts.
+ */
 interface Options {
   onOpenProject: () => void;
   onOpenNewConfirm: () => void;
 }
 
+/**
+ * Hook enregistrant les raccourcis clavier globaux d'EasyStudio sur window.
+ * Les raccourcis sont désactivés quand le focus est dans un champ de saisie.
+ * @param options - Callbacks pour les actions projet (ouvrir, nouveau).
+ */
 export function useKeyboardShortcuts({ onOpenProject, onOpenNewConfirm }: Options) {
   const { canvasInstance } = useCanvasStore();
   const { setShortcutsModal } = useUIStore();
@@ -57,14 +74,22 @@ export function useKeyboardShortcuts({ onOpenProject, onOpenNewConfirm }: Option
         const json = useCanvasStore.getState().undo();
         if (json) canvasInstance.loadFromJSON(JSON.parse(json), () => {
           canvasInstance.renderAll();
-          const layers = [...canvasInstance.getObjects()].reverse().map((obj: any) => ({
-            id: obj.id || '',
-            name: obj.layerName || obj.type || 'Objet',
-            type: getObjectType(obj) as any,
-            visible: obj.visible !== false,
-            locked: !obj.selectable,
-          }));
-          useCanvasStore.getState().setLayers(layers);
+          const store = useCanvasStore.getState();
+          const currentLayers = store.layers;
+          const containerLayers = currentLayers.filter((l) => l.isLayer);
+          const objectLayers = [...canvasInstance.getObjects()].reverse().map((obj: any) => {
+            const existing = currentLayers.find((l) => l.id === obj.id);
+            return {
+              id: obj.id || '',
+              name: obj.layerName || obj.type || 'Objet',
+              type: getObjectType(obj) as any,
+              visible: obj.visible !== false,
+              locked: !obj.selectable,
+              parentLayerId: existing?.parentLayerId,
+              fabricObject: obj,
+            };
+          });
+          store.setLayers([...containerLayers, ...objectLayers]);
         });
         return;
       }
@@ -73,6 +98,22 @@ export function useKeyboardShortcuts({ onOpenProject, onOpenNewConfirm }: Option
         const json = useCanvasStore.getState().redo();
         if (json) canvasInstance.loadFromJSON(JSON.parse(json), () => {
           canvasInstance.renderAll();
+          const store = useCanvasStore.getState();
+          const currentLayers = store.layers;
+          const containerLayers = currentLayers.filter((l) => l.isLayer);
+          const objectLayers = [...canvasInstance.getObjects()].reverse().map((obj: any) => {
+            const existing = currentLayers.find((l) => l.id === obj.id);
+            return {
+              id: obj.id || '',
+              name: obj.layerName || obj.type || 'Objet',
+              type: getObjectType(obj) as any,
+              visible: obj.visible !== false,
+              locked: !obj.selectable,
+              parentLayerId: existing?.parentLayerId,
+              fabricObject: obj,
+            };
+          });
+          store.setLayers([...containerLayers, ...objectLayers]);
         });
         return;
       }

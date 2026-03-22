@@ -1,3 +1,11 @@
+/**
+ * @file AIPanel.tsx
+ * @description Panneau de génération de logos par intelligence artificielle.
+ * Permet de saisir une clé API Anthropic, de décrire un logo en langage naturel
+ * et de générer un SVG qui est automatiquement ajouté sur le canvas.
+ * @module components/AIPanel/AIPanel
+ */
+
 import { useState } from 'react';
 import { useAIStore } from '../../store/aiStore';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -13,6 +21,12 @@ const SUGGESTIONS = [
   'Logo médical propre et professionnel',
 ];
 
+/**
+ * @component AIPanel
+ * @description Panneau IA avec saisie de la clé API Anthropic, zone de prompt,
+ * suggestions rapides, bouton de génération et historique des prompts récents.
+ * @returns JSX du composant AIPanel.
+ */
 export default function AIPanel() {
   const { apiKey, setApiKey, isGenerating, error, promptHistory } = useAIStore();
   const { canvasInstance } = useCanvasStore();

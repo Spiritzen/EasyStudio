@@ -1,3 +1,11 @@
+/**
+ * @file LayerItem.tsx
+ * @description Composant représentant un calque individuel dans le panneau des calques.
+ * Gère le renommage (double-clic), la visibilité, le verrouillage, la suppression,
+ * la duplication, le déplacement de rang, le menu contextuel (clic droit) et le drag-and-drop.
+ * @module components/LayersPanel/LayerItem
+ */
+
 import { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -19,12 +27,23 @@ const TYPE_ICONS: Record<string, string> = {
   layer: '📁',
 };
 
+/**
+ * @interface Props
+ * @description Props du composant LayerItemComponent.
+ */
 interface Props {
   layer: LayerItemType;
   isSelected: boolean;
   indent?: boolean;
 }
 
+/**
+ * @component LayerItemComponent
+ * @description Représente un calque individuel dans le panneau des calques avec
+ * toutes ses interactions : sélection, renommage, visibilité, verrouillage,
+ * suppression, duplication, réordonnancement et menu contextuel.
+ * @returns JSX du composant LayerItem.
+ */
 export default function LayerItemComponent({ layer, isSelected, indent }: Props) {
   const {
     updateLayer, setSelectedId, canvasInstance,

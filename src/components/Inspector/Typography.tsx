@@ -1,3 +1,10 @@
+/**
+ * @file Typography.tsx
+ * @description Sous-section de l'inspecteur pour les propriétés typographiques
+ * d'un objet texte sélectionné : police, taille, gras, italique et alignement.
+ * @module components/Inspector/Typography
+ */
+
 import { useEffect, useState } from 'react';
 import { fabric } from 'fabric';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -5,6 +12,12 @@ import { useCanvasStore } from '../../store/canvasStore';
 const FONTS = ['Inter', 'Arial', 'Georgia', 'Courier New', 'Verdana', 'Trebuchet MS', 'Times New Roman'];
 const ALIGNS = ['left', 'center', 'right'] as const;
 
+/**
+ * @component Typography
+ * @description Section de l'inspecteur dédiée aux propriétés typographiques.
+ * Affiché uniquement quand l'objet sélectionné est un texte (i-text ou text).
+ * @returns JSX du composant Typography.
+ */
 export default function Typography() {
   const { selectedId, canvasInstance } = useCanvasStore();
   const [fontFamily, setFontFamily] = useState('Inter');

@@ -1,6 +1,19 @@
+/**
+ * @file FillStroke.tsx
+ * @description Sous-section de l'inspecteur permettant de modifier la couleur de remplissage,
+ * la couleur de contour et l'épaisseur du contour de l'objet sélectionné.
+ * @module components/Inspector/FillStroke
+ */
+
 import { useEffect, useState } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 
+/**
+ * @component FillStroke
+ * @description Section de l'inspecteur pour les couleurs de remplissage et de contour
+ * de l'objet Fabric.js sélectionné. Propose un bouton "transparent" pour chaque couleur.
+ * @returns JSX du composant FillStroke.
+ */
 export default function FillStroke() {
   const { selectedId, canvasInstance } = useCanvasStore();
   const [fill, setFill] = useState('#6c63ff');

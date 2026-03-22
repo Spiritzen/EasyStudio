@@ -1,3 +1,10 @@
+/**
+ * @file Footer.tsx
+ * @description Pied de page d'EasyStudio affichant le copyright, la version de l'application
+ * et des liens externes (GitHub, Portfolio, LinkedIn, Vidéo, Contact, CV).
+ * @module components/Footer/Footer
+ */
+
 import './Footer.css';
 
 const IconGitHub = () => (
@@ -76,6 +83,10 @@ const IconCV = () => (
   </svg>
 );
 
+/**
+ * @interface FooterLink
+ * @description Structure d'un lien de navigation dans le pied de page.
+ */
 interface FooterLink {
   href: string;
   label: string;
@@ -120,6 +131,12 @@ const LINKS: FooterLink[] = [
   },
 ];
 
+/**
+ * @component Footer
+ * @description Pied de page avec copyright à gauche, version au centre
+ * et liens externes à droite (GitHub, Portfolio, LinkedIn, Vidéo, Contact, CV).
+ * @returns JSX du composant Footer.
+ */
 export default function Footer() {
   return (
     <footer className="app-footer">

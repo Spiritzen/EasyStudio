@@ -1,3 +1,11 @@
+/**
+ * @file Toolbar.tsx
+ * @description Barre d'outils principale d'EasyStudio. Contient le logo, le titre
+ * éditable du projet, les onglets de navigation (Fichier, Templates, Outils, IA),
+ * les outils rapides (formes, import, undo/redo) et les boutons export/partage.
+ * @module components/Toolbar/Toolbar
+ */
+
 import { useState, useRef } from 'react';
 import { fabric } from 'fabric';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -13,10 +21,15 @@ import ToolsMenu from './ToolsMenu';
 import URLImportModal from './URLImportModal';
 import BackgroundPicker from './BackgroundPicker';
 import Tooltip from '../UI/Tooltip';
+import { toast } from '../../store/toastStore';
 import './Toolbar.css';
 
 type Tab = 'Fichier' | 'Templates' | 'Outils' | 'IA';
 
+/**
+ * @interface Props
+ * @description Props du composant Toolbar.
+ */
 interface Props {
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
@@ -25,6 +38,12 @@ interface Props {
   onNewProject: () => void;
 }
 
+/**
+ * @component Toolbar
+ * @description Barre d'outils principale d'EasyStudio avec navigation par onglets,
+ * outils de création rapide, undo/redo, import et menu export.
+ * @returns JSX du composant Toolbar.
+ */
 export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpenProject, onNewProject }: Props) {
   const { canvasInstance, history, historyIndex, isDrawingMode, setDrawingMode } = useCanvasStore();
   const { title, setTitle } = useProjectStore();
@@ -75,6 +94,43 @@ export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpe
     onTabChange(tab);
   };
 
+  // ─── Share ────────────────────────────────────────────────────────
+
+  const handleShare = async () => {
+    const url = 'https://spiritzen.github.io/EasyStudio/';
+
+    // Web Share API — natif sur mobile/Chrome
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'EasyStudio',
+          text: 'Outil de création visuelle open source — logos, vignettes, animations & export HTML/CSS',
+          url,
+        });
+        return;
+      } catch {
+        // Annulé par l'utilisateur → fallback
+      }
+    }
+
+    // Fallback : copie dans le presse-papier
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Lien copié dans le presse-papier ✓');
+    } catch {
+      // Dernier recours
+      const input = document.createElement('input');
+      input.value = url;
+      input.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(input);
+      input.focus();
+      input.select();
+      document.execCommand('copy');
+      document.body.removeChild(input);
+      toast.success('Lien copié ✓');
+    }
+  };
+
   // ─── Drawing mode ─────────────────────────────────────────────────
   // Apply directly to Fabric canvas — synchronous, no useEffect
 
@@ -100,7 +156,6 @@ export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpe
       const el = canvas.getElement() as HTMLElement;
       if (el) el.style.cursor = 'crosshair';
 
-      console.log('[EasyStudio] isDrawingMode:', canvas.isDrawingMode, '— brush:', canvas.freeDrawingBrush);
     } else {
       canvas.isDrawingMode = false;
       canvas.requestRenderAll();
@@ -215,7 +270,7 @@ export default function Toolbar({ activeTab, onTabChange, onShowTemplates, onOpe
         <div className="toolbar-right">
           <BackgroundPicker />
           <Tooltip text="Partager votre création">
-            <button className="toolbar-btn share-btn">↑ Partager</button>
+            <button className="toolbar-btn share-btn" onClick={handleShare}>↑ Partager</button>
           </Tooltip>
           <ExportMenu />
         </div>

@@ -1,3 +1,11 @@
+/**
+ * @file FileMenu.tsx
+ * @description Menu déroulant "Fichier" de la barre d'outils. Permet de créer un nouveau projet,
+ * d'ouvrir un fichier .easylogo, de sauvegarder, de charger un projet récent,
+ * d'importer une image ou de copier le code HTML/CSS généré.
+ * @module components/Toolbar/FileMenu
+ */
+
 import { useRef, useEffect, useState } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { useProjectStore } from '../../store/projectStore';
@@ -12,6 +20,10 @@ import { addRect, addImage, addSVGFromFile } from '../../utils/fabricHelpers';
 import ConfirmDialog from '../UI/ConfirmDialog';
 import type { DialogButton } from '../UI/ConfirmDialog';
 
+/**
+ * @interface Props
+ * @description Props du composant FileMenu.
+ */
 interface Props {
   onClose: () => void;
   onNewProject: () => void;
@@ -34,6 +46,12 @@ const IcoAI = () => (
   </svg>
 );
 
+/**
+ * @component FileMenu
+ * @description Menu déroulant "Fichier" avec démarrage rapide, gestion de projet
+ * (nouveau, ouvrir, sauvegarder), projets récents et export de code HTML/CSS.
+ * @returns JSX du composant FileMenu.
+ */
 export default function FileMenu({ onClose, onNewProject, onOpenAI }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

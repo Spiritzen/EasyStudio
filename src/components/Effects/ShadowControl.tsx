@@ -1,7 +1,20 @@
+/**
+ * @file ShadowControl.tsx
+ * @description Contrôle d'ombre portée pour l'objet Fabric.js sélectionné.
+ * Permet d'activer/désactiver l'ombre et d'ajuster couleur, décalage X/Y et flou.
+ * @module components/Effects/ShadowControl
+ */
+
 import { useEffect, useState } from 'react';
 import { fabric } from 'fabric';
 import { useCanvasStore } from '../../store/canvasStore';
 
+/**
+ * @component ShadowControl
+ * @description Section de l'onglet Effets permettant de configurer une ombre portée
+ * via un interrupteur toggle et des champs de réglage (couleur, offset X, offset Y, flou).
+ * @returns JSX du composant ShadowControl.
+ */
 export default function ShadowControl() {
   const { selectedId, canvasInstance } = useCanvasStore();
   const [enabled, setEnabled] = useState(false);

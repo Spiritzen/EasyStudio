@@ -1,3 +1,11 @@
+/**
+ * @file ToolsMenu.tsx
+ * @description Menu déroulant "Outils" offrant l'ajout de formes et textes prédéfinis,
+ * des outils avancés (pipette, duplication, alignement), la grille, les règles
+ * et la capture d'état pour les transitions.
+ * @module components/Toolbar/ToolsMenu
+ */
+
 import { useRef, useEffect, useState } from 'react';
 import { useCanvasStore } from '../../store/canvasStore';
 import { useUIStore } from '../../store/uiStore';
@@ -11,6 +19,10 @@ import {
 } from '../../utils/fabricHelpers';
 import type { AlignDirection } from '../../utils/fabricHelpers';
 
+/**
+ * @interface Props
+ * @description Props du composant ToolsMenu.
+ */
 interface Props { onClose: () => void }
 
 const ALIGN_BTNS: { dir: AlignDirection; icon: string; label: string }[] = [
@@ -22,6 +34,12 @@ const ALIGN_BTNS: { dir: AlignDirection; icon: string; label: string }[] = [
   { dir: 'bottom', icon: '▼',    label: 'Bas' },
 ];
 
+/**
+ * @component ToolsMenu
+ * @description Menu contextuel "Outils" avec sections formes, texte, outils avancés et alignement.
+ * Se ferme automatiquement au clic extérieur ou à l'appui sur Échap.
+ * @returns JSX du composant ToolsMenu.
+ */
 export default function ToolsMenu({ onClose }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
   const { canvasInstance } = useCanvasStore();

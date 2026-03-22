@@ -1,3 +1,11 @@
+/**
+ * @file OnboardingModal.tsx
+ * @description Modale d'accueil affichée automatiquement à la première visite.
+ * Présente les fonctionnalités clés d'EasyStudio et propose de ne plus afficher la modale.
+ * La suppression permanente est persistée dans le localStorage.
+ * @module components/UI/OnboardingModal
+ */
+
 import { useState, useEffect } from 'react';
 import './OnboardingModal.css';
 
@@ -10,6 +18,12 @@ const FEATURES = [
   'Module IA optionnel — votre clé Anthropic',
 ];
 
+/**
+ * @component OnboardingModal
+ * @description Modale d'introduction affichée à la première visite. Présente les
+ * fonctionnalités clés et propose "Ne plus afficher" pour une suppression définitive.
+ * @returns JSX de la modale, ou null si déjà affichée précédemment.
+ */
 export default function OnboardingModal() {
   const [visible, setVisible] = useState(false);
 

@@ -1,3 +1,11 @@
+/**
+ * @file useCanvas.ts
+ * @description Hook React initialisant et gérant l'instance Fabric.js du canvas.
+ * Gère le cycle de vie (init, événements, cleanup), la synchro des calques,
+ * l'historique undo/redo, le snap à la grille et le collage depuis le presse-papiers.
+ * @module components/Canvas/useCanvas
+ */
+
 import { useEffect, useRef, useCallback } from 'react';
 import { fabric } from 'fabric';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -7,10 +15,15 @@ import { fitToView } from '../../utils/zoomUtils';
 
 const SNAP_GRID = 8;
 
-// Builds the layers list from the canvas, while preserving:
-// - empty layer containers (isLayer: true) from the current store
-// - parentLayerId on existing canvas objects
-// - auto-assigns new objects to activeLayerId if set
+/**
+ * Reconstruit la liste des calques en fusionnant les conteneurs logiques existants
+ * avec les objets Fabric actuellement sur le canvas.
+ * Préserve les conteneurs vides (isLayer), les parentLayerId, et assigne les nouveaux
+ * objets à l'activeLayerId courant si défini.
+ * @param canvas - L'instance Fabric.js active.
+ * @param currentLayers - La liste actuelle des calques dans le store.
+ * @returns La liste fusionnée et ordonnée de LayerItem.
+ */
 function buildMergedLayers(canvas: fabric.Canvas, currentLayers: LayerItem[]): LayerItem[] {
   const existingById = new Map(currentLayers.map((l) => [l.id, l]));
   const { activeLayerId } = useCanvasStore.getState();
@@ -58,6 +71,12 @@ function buildMergedLayers(canvas: fabric.Canvas, currentLayers: LayerItem[]): L
   return merged;
 }
 
+/**
+ * Hook initialisant l'instance Fabric.js, enregistrant tous les événements canvas
+ * et synchronisant l'état avec le store Zustand.
+ * @param containerRef - Référence vers l'élément HTML conteneur du canvas (pour fitToView).
+ * @returns Un objet contenant canvasRef, fabricRef et la fonction syncLayers.
+ */
 export function useCanvas(containerRef: React.RefObject<HTMLDivElement>) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);

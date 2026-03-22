@@ -1,3 +1,11 @@
+/**
+ * @file Toast.tsx
+ * @description Composant de notifications toast avec animation d'entrée/sortie.
+ * Chaque notification disparaît automatiquement après 3 secondes (géré par le store).
+ * L'animation de sortie est déclenchée 400 ms avant la suppression du store.
+ * @module components/UI/Toast
+ */
+
 import { useEffect, useState } from 'react';
 import { useToastStore } from '../../store/toastStore';
 import type { ToastItem, ToastType } from '../../store/toastStore';
@@ -9,6 +17,11 @@ const ICONS: Record<ToastType, string> = {
   info: '✦',
 };
 
+/**
+ * Carte de notification individuelle avec animation de sortie progressive.
+ * @param toast - Les données de la notification à afficher.
+ * @param onRemove - Callback appelé pour supprimer le toast du store.
+ */
 function ToastCard({ toast, onRemove }: { toast: ToastItem; onRemove: () => void }) {
   const [leaving, setLeaving] = useState(false);
 
@@ -28,6 +41,12 @@ function ToastCard({ toast, onRemove }: { toast: ToastItem; onRemove: () => void
   );
 }
 
+/**
+ * @component ToastContainer
+ * @description Conteneur global de notifications toast positionné en bas de l'écran.
+ * Retourne null si aucun toast n'est actif.
+ * @returns JSX du composant ToastContainer, ou null.
+ */
 export default function ToastContainer() {
   const { toasts, removeToast } = useToastStore();
 

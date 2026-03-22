@@ -1,3 +1,12 @@
+/**
+ * @file BackgroundPicker.tsx
+ * @description Sélecteur d'arrière-plan de travail du canvas. Permet de choisir
+ * une couleur parmi des présets sombres/clairs, de saisir un code hexadécimal,
+ * d'utiliser le sélecteur natif ou de définir un fond transparent.
+ * Cet arrière-plan est uniquement visuel et non exporté.
+ * @module components/Toolbar/BackgroundPicker
+ */
+
 import { useState, useRef, useEffect } from 'react';
 import { useBackgroundStore } from '../../store/backgroundStore';
 import Tooltip from '../UI/Tooltip';
@@ -29,6 +38,12 @@ function isValidHex(v: string) {
   return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v);
 }
 
+/**
+ * @component BackgroundPicker
+ * @description Bouton + menu déroulant permettant de configurer la couleur et l'opacité
+ * de l'arrière-plan de travail. Positionné en absolu sous le bouton déclencheur.
+ * @returns JSX du composant BackgroundPicker.
+ */
 export default function BackgroundPicker() {
   const { bgColor, bgOpacity, bgTransparent, setBgColor, setBgOpacity, setBgTransparent } = useBackgroundStore();
 

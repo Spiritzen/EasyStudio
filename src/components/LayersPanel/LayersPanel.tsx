@@ -1,3 +1,11 @@
+/**
+ * @file LayersPanel.tsx
+ * @description Panneau des calques avec glisser-déposer (dnd-kit). Affiche la liste
+ * hiérarchique des calques, permet le réordonnancement, l'imbrication dans des conteneurs,
+ * l'ajout de calques vides et le vidage complet du canvas.
+ * @module components/LayersPanel/LayersPanel
+ */
+
 import { useState, useEffect } from 'react';
 import {
   DndContext,
@@ -66,6 +74,12 @@ function SortableLayerItem({
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * @component LayersPanel
+ * @description Panneau latéral gauche affichant la liste hiérarchique des calques avec
+ * drag-and-drop, imbrication dans des conteneurs et actions de gestion (ajout, suppression, vidage).
+ * @returns JSX du composant LayersPanel.
+ */
 export default function LayersPanel() {
   const {
     layers, selectedId, canvasInstance,
@@ -85,6 +99,20 @@ export default function LayersPanel() {
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  // ── Sync z-index Fabric après drop dans un groupe ────────────────────────
+
+  const syncGroupZIndex = (groupLayerId: string) => {
+    const { layers: currentLayers, canvasInstance: ci } = useCanvasStore.getState();
+    if (!ci) return;
+    const children = currentLayers.filter((l) => l.parentLayerId === groupLayerId);
+    const total = ci.getObjects().length;
+    children.forEach((child, i) => {
+      const obj = ci.getObjects().find((o: any) => o.id === child.id);
+      if (obj) ci.moveTo(obj, Math.max(0, total - 1 - i));
+    });
+    ci.requestRenderAll();
+  };
 
   // ── Drag handlers ──────────────────────────────────────────────────────────
 
@@ -109,6 +137,7 @@ export default function LayersPanel() {
     // ── CAS 1 : drop SUR un calque groupe → imbriquer ──────────────────────
     if (overLayer.isLayer && !activeLayer.isLayer && overLayer.id !== activeLayer.parentLayerId) {
       assignObjectToLayer(activeLayer.id, overLayer.id);
+      setTimeout(() => syncGroupZIndex(overLayer.id), 50);
       return;
     }
 

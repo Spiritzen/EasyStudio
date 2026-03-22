@@ -1,0 +1,150 @@
+.mobile-screen {
+  min-height: 100vh;
+  background: #0d0d14;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px;
+  gap: 24px;
+  font-family: var(--font-sans, sans-serif);
+}
+
+.ms-header {
+  text-align: center;
+  padding-top: 20px;
+}
+
+.ms-logo {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f0a500;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.ms-tagline {
+  font-size: 13px;
+  color: #a09880;
+  letter-spacing: 0.03em;
+}
+
+.ms-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(240,165,0,0.25);
+  border-radius: 14px;
+  padding: 24px 20px;
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 0 30px rgba(240,165,0,0.06);
+}
+
+.ms-card-icon {
+  color: #f0a500;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.ms-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f0ece4;
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+}
+
+.ms-card-text {
+  font-size: 13px;
+  color: #a09880;
+  line-height: 1.7;
+}
+
+.ms-copy-btn {
+  background: transparent;
+  border: 1px solid #f0a500;
+  color: #f0a500;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 360px;
+}
+
+.ms-copy-btn:hover,
+.ms-copy-btn:active {
+  background: #f0a500;
+  color: #0d0d14;
+}
+
+.ms-qr-section {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ms-qr-label {
+  font-size: 11px;
+  color: #5a5445;
+  letter-spacing: 0.04em;
+}
+
+.ms-qr-wrapper {
+  background: #0d0d14;
+  border: 1px solid rgba(240,165,0,0.2);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.ms-qr-wrapper img {
+  display: block;
+  border-radius: 4px;
+}
+
+.ms-features {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.ms-feature {
+  font-size: 11px;
+  color: #4a4438;
+  text-align: center;
+  padding: 6px 12px;
+  border-left: 2px solid rgba(240,165,0,0.15);
+  border-radius: 0 4px 4px 0;
+  background: rgba(240,165,0,0.02);
+}
+
+.ms-footer {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.ms-footer a {
+  font-size: 12px;
+  color: #5a5445;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.ms-footer a:hover {
+  color: #f0a500;
+}
+
+.ms-footer span {
+  color: #2a2a2a;
+  font-size: 10px;
+}

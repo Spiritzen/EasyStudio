@@ -1,13 +1,34 @@
+/**
+ * @file fabricHelpers.ts
+ * @description Fonctions utilitaires pour manipuler le canvas Fabric.js :
+ * ajout de formes, textes, images et SVG, groupage, alignement, duplication et suppression.
+ * @module utils/fabricHelpers
+ */
+
 import { fabric } from 'fabric';
 
 let objectCounter = 0;
 const getId = () => `obj_${++objectCounter}_${Date.now()}`;
 
+/**
+ * Remet le compteur d'objets à zéro (utilisé lors de la création d'un nouveau projet).
+ */
 export function resetObjectCounter() { objectCounter = 0; }
+
+/**
+ * Définit le compteur d'objets à une valeur donnée (utilisé lors de la restauration d'un projet).
+ * @param n - Valeur à assigner au compteur.
+ */
 export function setObjectCounter(n: number) { objectCounter = n; }
 
 // ─── Helpers internes ───────────────────────────────────────────────
 
+/**
+ * Centre un objet Fabric sur le canvas en tenant compte du zoom.
+ * Réduit l'objet à 65% de la largeur logique s'il dépasse cette limite.
+ * @param canvas - L'instance Fabric.js active.
+ * @param obj - L'objet à centrer.
+ */
 function centerOnCanvas(canvas: fabric.Canvas, obj: fabric.Object) {
   const zoom = canvas.getZoom();
   const logW = canvas.getWidth() / zoom;
@@ -23,12 +44,22 @@ function centerOnCanvas(canvas: fabric.Canvas, obj: fabric.Object) {
 
 // ─── Guard canvas initialisé ────────────────────────────────────────
 
+/**
+ * Vérifie que l'instance Fabric.js est initialisée et utilisable.
+ * @param canvas - L'instance canvas à vérifier (peut être null).
+ * @returns true si le canvas est valide.
+ */
 function isReady(canvas: fabric.Canvas | null): canvas is fabric.Canvas {
   return !!canvas && !!(canvas as any).lowerCanvasEl;
 }
 
 // ─── Formes de base ─────────────────────────────────────────────────
 
+/**
+ * Ajoute un rectangle arrondi centré sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ * @returns L'objet Fabric créé, ou undefined si le canvas n'est pas prêt.
+ */
 export function addRect(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
@@ -46,6 +77,11 @@ export function addRect(canvas: fabric.Canvas | null) {
   return rect;
 }
 
+/**
+ * Ajoute un cercle centré sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ * @returns L'objet Fabric créé, ou undefined si le canvas n'est pas prêt.
+ */
 export function addCircle(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
@@ -63,6 +99,11 @@ export function addCircle(canvas: fabric.Canvas | null) {
   return circle;
 }
 
+/**
+ * Ajoute un triangle centré sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ * @returns L'objet Fabric créé, ou undefined si le canvas n'est pas prêt.
+ */
 export function addTriangle(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
@@ -80,6 +121,12 @@ export function addTriangle(canvas: fabric.Canvas | null) {
   return tri;
 }
 
+/**
+ * Ajoute une zone de texte éditable (IText) centrée sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ * @param text - Texte initial (défaut : 'EasyStudio').
+ * @returns L'objet IText créé, ou undefined si le canvas n'est pas prêt.
+ */
 export function addText(canvas: fabric.Canvas | null, text = 'EasyStudio') {
   if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
@@ -101,6 +148,11 @@ export function addText(canvas: fabric.Canvas | null, text = 'EasyStudio') {
 
 // ─── Import image (fichier local) ────────────────────────────────────
 
+/**
+ * Ajoute une image depuis une URL (data URL ou URL locale) et la centre sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ * @param url - URL ou data URL de l'image à importer.
+ */
 export function addImage(canvas: fabric.Canvas | null, url: string) {
   if (!isReady(canvas)) return;
   fabric.Image.fromURL(url, (img) => {
@@ -115,6 +167,13 @@ export function addImage(canvas: fabric.Canvas | null, url: string) {
 
 // ─── Import image depuis un Blob (drag & drop, clipboard) ───────────
 
+/**
+ * Ajoute une image depuis un Blob (glisser-déposer ou presse-papiers) et la centre sur le canvas.
+ * L'URL blob est révoquée automatiquement après 5 secondes.
+ * @param canvas - L'instance Fabric.js active.
+ * @param blob - Le Blob image à importer.
+ * @returns Une promesse résolue une fois l'image ajoutée.
+ */
 export function addImageFromBlob(canvas: fabric.Canvas | null, blob: Blob): Promise<void> {
   if (!isReady(canvas)) return Promise.resolve();
   return new Promise((resolve) => {
@@ -134,6 +193,12 @@ export function addImageFromBlob(canvas: fabric.Canvas | null, blob: Blob): Prom
 
 // ─── Import image depuis une URL (avec gestion CORS) ─────────────────
 
+/**
+ * Ajoute une image depuis une URL distante avec vérification CORS préalable.
+ * @param canvas - L'instance Fabric.js active.
+ * @param url - L'URL distante de l'image.
+ * @returns Une promesse résolue si l'image est accessible, rejetée sinon.
+ */
 export function addImageFromURL(canvas: fabric.Canvas | null, url: string): Promise<void> {
   if (!isReady(canvas)) return Promise.resolve();
   return new Promise((resolve, reject) => {
@@ -162,6 +227,13 @@ export function addImageFromURL(canvas: fabric.Canvas | null, url: string): Prom
 
 // ─── Import SVG (string) ─────────────────────────────────────────────
 
+/**
+ * Parse et ajoute un SVG depuis une chaîne de caractères sur le canvas.
+ * Les éléments SVG sont regroupés en un seul objet Fabric.
+ * @param canvas - L'instance Fabric.js active.
+ * @param svgString - La chaîne SVG à importer.
+ * @param onDone - Callback optionnel appelé avec le groupe créé une fois l'ajout terminé.
+ */
 export function addSVGFromString(
   canvas: fabric.Canvas | null,
   svgString: string,
@@ -184,6 +256,12 @@ export function addSVGFromString(
 
 // ─── Import SVG depuis un fichier .svg ───────────────────────────────
 
+/**
+ * Lit un fichier SVG local et l'ajoute sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ * @param file - Le fichier SVG à importer.
+ * @returns Une promesse résolue une fois le SVG ajouté, rejetée en cas d'erreur.
+ */
 export function addSVGFromFile(canvas: fabric.Canvas | null, file: File): Promise<void> {
   if (!isReady(canvas)) return Promise.resolve();
   return new Promise((resolve, reject) => {
@@ -200,6 +278,11 @@ export function addSVGFromFile(canvas: fabric.Canvas | null, file: File): Promis
 
 // ─── Décomposer un groupe en objets individuels ──────────────────────
 
+/**
+ * Décompose le groupe actuellement sélectionné en objets individuels
+ * en préservant leurs transformations absolues (position, rotation, échelle).
+ * @param canvas - L'instance Fabric.js active.
+ */
 export function ungroupSelected(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const active = canvas.getActiveObject();
@@ -244,6 +327,11 @@ export function ungroupSelected(canvas: fabric.Canvas | null) {
 
 // ─── Grouper la sélection ────────────────────────────────────────────
 
+/**
+ * Regroupe les objets actuellement sélectionnés en un seul groupe Fabric.
+ * Nécessite au minimum 2 objets sélectionnés.
+ * @param canvas - L'instance Fabric.js active.
+ */
 export function groupSelected(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const activeObjects = canvas.getActiveObjects();
@@ -263,6 +351,10 @@ export function groupSelected(canvas: fabric.Canvas | null) {
 
 // ─── Supprimer la sélection ──────────────────────────────────────────
 
+/**
+ * Supprime tous les objets actuellement sélectionnés du canvas.
+ * @param canvas - L'instance Fabric.js active.
+ */
 export function deleteSelected(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const activeObjects = canvas.getActiveObjects();
@@ -273,6 +365,11 @@ export function deleteSelected(canvas: fabric.Canvas | null) {
 
 // ─── Nouvelles formes ────────────────────────────────────────────────
 
+/**
+ * Ajoute une ligne horizontale centrée sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ * @returns L'objet Line créé, ou undefined si le canvas n'est pas prêt.
+ */
 export function addLine(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
@@ -291,6 +388,10 @@ export function addLine(canvas: fabric.Canvas | null) {
   return line;
 }
 
+/**
+ * Ajoute une flèche SVG horizontale centrée sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ */
 export function addArrow(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const svgArrow = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
@@ -300,6 +401,10 @@ export function addArrow(canvas: fabric.Canvas | null) {
   addSVGFromString(canvas, svgArrow);
 }
 
+/**
+ * Ajoute une étoile à 5 branches (SVG) centrée sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ */
 export function addStar(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const svgStar = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
@@ -311,6 +416,12 @@ export function addStar(canvas: fabric.Canvas | null) {
 
 // ─── Présets texte ────────────────────────────────────────────────────
 
+/**
+ * Ajoute un bloc de texte avec un style prédéfini (titre, sous-titre ou corps).
+ * @param canvas - L'instance Fabric.js active.
+ * @param preset - Le niveau hiérarchique du texte : 'title' (48px), 'subtitle' (28px) ou 'body' (16px).
+ * @returns L'objet Textbox créé, ou undefined si le canvas n'est pas prêt.
+ */
 export function addTextPreset(
   canvas: fabric.Canvas | null,
   preset: 'title' | 'subtitle' | 'body'
@@ -343,6 +454,10 @@ export function addTextPreset(
   return tb;
 }
 
+/**
+ * Ajoute un texte en arc de cercle (via SVG textPath) sur le canvas.
+ * @param canvas - L'instance Fabric.js active.
+ */
 export function addTextArc(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const svgArc = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
@@ -356,6 +471,10 @@ export function addTextArc(canvas: fabric.Canvas | null) {
 
 // ─── Dupliquer la sélection ───────────────────────────────────────────
 
+/**
+ * Duplique l'objet ou la sélection active avec un décalage de 20px.
+ * @param canvas - L'instance Fabric.js active.
+ */
 export function duplicateSelected(canvas: fabric.Canvas | null) {
   if (!isReady(canvas)) return;
   const active = canvas.getActiveObject();
@@ -385,8 +504,19 @@ export function duplicateSelected(canvas: fabric.Canvas | null) {
 
 // ─── Aligner les objets ──────────────────────────────────────────────
 
+/**
+ * @typedef AlignDirection
+ * @description Direction d'alignement disponible pour les objets sur le canvas.
+ */
 export type AlignDirection = 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom';
 
+/**
+ * Aligne les objets sélectionnés selon la direction spécifiée.
+ * Si un seul objet est sélectionné, il est aligné par rapport au canvas.
+ * Si plusieurs objets sont sélectionnés, ils sont alignés par rapport à leur boîte englobante.
+ * @param canvas - L'instance Fabric.js active.
+ * @param direction - La direction d'alignement souhaitée.
+ */
 export function alignObjects(canvas: fabric.Canvas | null, direction: AlignDirection) {
   if (!isReady(canvas)) return;
   const objects = canvas.getActiveObjects();
@@ -437,6 +567,11 @@ export function alignObjects(canvas: fabric.Canvas | null, direction: AlignDirec
 
 // ─── Utilitaire type ─────────────────────────────────────────────────
 
+/**
+ * Retourne le type simplifié d'un objet Fabric (utilisé pour les icônes du panneau calques).
+ * @param obj - L'objet Fabric dont on veut connaître le type.
+ * @returns Une chaîne identifiant le type : 'rect', 'circle', 'triangle', 'text', 'image', 'group' ou 'path'.
+ */
 export function getObjectType(obj: fabric.Object): string {
   if (obj.type === 'rect') return 'rect';
   if (obj.type === 'circle') return 'circle';

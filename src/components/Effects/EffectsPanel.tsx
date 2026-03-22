@@ -1,3 +1,11 @@
+/**
+ * @file EffectsPanel.tsx
+ * @description Panneau à onglets "Effets / Transitions". L'onglet Effets permet d'appliquer
+ * un flou gaussien, des coins arrondis et une ombre portée sur l'objet sélectionné.
+ * L'onglet Transitions affiche le composant TransitionsPanel.
+ * @module components/Effects/EffectsPanel
+ */
+
 import { useEffect, useState } from 'react';
 import { fabric } from 'fabric';
 import { useCanvasStore } from '../../store/canvasStore';
@@ -7,6 +15,12 @@ import './Effects.css';
 
 type PanelTab = 'effets' | 'transitions';
 
+/**
+ * @component EffectsPanel
+ * @description Panneau latéral droit à onglets pour les effets visuels (flou, arrondi, ombre)
+ * et les transitions animées. Affiche un état vide si aucun objet n'est sélectionné.
+ * @returns JSX du composant EffectsPanel.
+ */
 export default function EffectsPanel() {
   const { selectedId, canvasInstance } = useCanvasStore();
   const [activeTab, setActiveTab] = useState<PanelTab>('effets');

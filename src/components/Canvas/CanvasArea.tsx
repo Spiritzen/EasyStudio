@@ -33,7 +33,11 @@ export default function CanvasArea({ onOpenAI }: Props) {
   // Sync canvas size when it changes
   useEffect(() => {
     if (!canvasInstance) return;
-    const update = () => setCanvasSize({ w: canvasInstance.getWidth(), h: canvasInstance.getHeight() });
+    const update = () => {
+      const w = canvasInstance.getWidth();
+      const h = canvasInstance.getHeight();
+      setCanvasSize((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+    };
     update();
     (canvasInstance as any).on('after:render', update);
     return () => { (canvasInstance as any).off('after:render', update); };

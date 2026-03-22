@@ -1,7 +1,20 @@
+/**
+ * @file transitionEngine.ts
+ * @description Moteur d'animation des transitions entre états du canvas.
+ * Implémente les animations via requestAnimationFrame, les fonctions d'easing JavaScript,
+ * et génère du code CSS @keyframes et des aperçus HTML exportables.
+ * @module utils/transitionEngine
+ */
+
 import type { TransitionConfig, CanvasState } from '../store/transitionStore';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+/**
+ * Convertit un nom d'easing EasyStudio en valeur CSS timing-function équivalente.
+ * @param easing - Le nom de l'easing (ex: 'power2.out', 'elastic.out').
+ * @returns La valeur CSS correspondante (ex: 'cubic-bezier(...)').
+ */
 function getEasing(easing: string): string {
   const map: Record<string, string> = {
     'linear': 'linear',
@@ -16,9 +29,19 @@ function getEasing(easing: string): string {
   return map[easing] ?? 'ease-out';
 }
 
+/**
+ * Interpolation linéaire entre deux valeurs.
+ * @param a - Valeur de départ.
+ * @param b - Valeur d'arrivée.
+ * @param t - Progression normalisée entre 0 et 1.
+ * @returns La valeur interpolée.
+ */
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-// JS easing functions keyed by EasingType
+/**
+ * Dictionnaire des fonctions d'easing JavaScript, indexées par nom EasyStudio.
+ * Chaque fonction accepte un paramètre t entre 0 et 1 et retourne la valeur easée.
+ */
 const EASING_FN: Record<string, (t: number) => number> = {
   'linear':      (t) => t,
   'power1.out':  (t) => 1 - Math.pow(1 - t, 2),
@@ -36,18 +59,40 @@ const EASING_FN: Record<string, (t: number) => number> = {
   'circ.out':    (t) => Math.sqrt(1 - Math.pow(t - 1, 2)),
 };
 
+/**
+ * Retourne la fonction d'easing JavaScript correspondant au nom donné.
+ * Replie sur 'power2.out' si le nom est inconnu.
+ * @param easing - Le nom de l'easing EasyStudio.
+ * @returns La fonction d'easing (t: number) => number.
+ */
 function getEasingFn(easing: string): (t: number) => number {
   return EASING_FN[easing] ?? EASING_FN['power2.out'];
 }
 
 // ─── Capture thumbnail ────────────────────────────────────────────────────────
 
+/**
+ * Génère une miniature PNG basse résolution (15%) du canvas pour les aperçus d'état.
+ * @param canvas - L'instance Fabric.js active.
+ * @returns Une data URL PNG.
+ */
 export function captureStateThumbnail(canvas: any): string {
   return canvas.toDataURL({ format: 'png', multiplier: 0.15 });
 }
 
 // ─── Play transition (requestAnimationFrame) ──────────────────────────────────
 
+/**
+ * Anime la transition entre deux états JSON du canvas via requestAnimationFrame.
+ * Charge d'abord l'état "from", puis anime les propriétés des objets selon le type de transition,
+ * et charge enfin l'état "to" à la fin de l'animation.
+ * @param canvas - L'instance Fabric.js active.
+ * @param fromJSON - L'état de départ sérialisé en JSON.
+ * @param toJSON - L'état d'arrivée sérialisé en JSON.
+ * @param config - La configuration de la transition (type, durée, easing, délai, stagger).
+ * @param onDone - Callback optionnel appelé à la fin de l'animation.
+ * @returns Un objet avec une méthode cancel() pour interrompre l'animation.
+ */
 export function playTransition(
   canvas: any,
   fromJSON: object,
@@ -174,6 +219,12 @@ export function playTransition(
 
 // ─── Generate CSS keyframes ───────────────────────────────────────────────────
 
+/**
+ * Génère du code CSS @keyframes pour chaque élément nommé, avec stagger.
+ * @param config - La configuration de la transition.
+ * @param objectNames - Les noms des objets à animer (utilisés pour les sélecteurs CSS).
+ * @returns Un bloc CSS complet avec les @keyframes et les règles d'animation.
+ */
 export function generateCSSKeyframes(config: TransitionConfig, objectNames: string[]): string {
   const { type, duration, easing, delay, stagger } = config;
   const cssEasing = getEasing(easing);
@@ -226,6 +277,14 @@ export function generateCSSKeyframes(config: TransitionConfig, objectNames: stri
 
 // ─── Generate HTML preview ────────────────────────────────────────────────────
 
+/**
+ * Génère un fichier HTML autonome présentant un aperçu interactif de la transition.
+ * Le fichier contient les miniatures des deux états et un bouton "Jouer".
+ * @param fromState - L'état de départ (avec miniature).
+ * @param toState - L'état d'arrivée (avec miniature).
+ * @param config - La configuration de la transition.
+ * @returns Une chaîne HTML complète prête à être sauvegardée en fichier .html.
+ */
 export function generateHTMLPreview(
   fromState: CanvasState,
   toState: CanvasState,

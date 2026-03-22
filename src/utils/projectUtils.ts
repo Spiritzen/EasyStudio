@@ -1,3 +1,10 @@
+/**
+ * @file projectUtils.ts
+ * @description Fonctions de gestion du cycle de vie des projets EasyStudio :
+ * sauvegarde (.easylogo), ouverture, restauration, nouveau projet et projets récents.
+ * @module utils/projectUtils
+ */
+
 import { useCanvasStore } from '../store/canvasStore';
 import { useProjectStore } from '../store/projectStore';
 import { useTransitionStore } from '../store/transitionStore';
@@ -13,6 +20,11 @@ const MAX_RECENT = 5;
 
 // ─── Types ────────────────────────────────────────────────────────────
 
+/**
+ * @interface EasyStudioFile
+ * @description Format de fichier .easylogo : structure JSON complète d'un projet sérialisé.
+ * Contient les objets Fabric, les calques, l'arrière-plan, les transitions et les métadonnées.
+ */
 export interface EasyStudioFile {
   easystudio: true;
   version: string;
@@ -28,6 +40,11 @@ export interface EasyStudioFile {
   thumbnail: string;
 }
 
+/**
+ * @interface RecentProject
+ * @description Entrée de la liste des projets récents stockée dans le localStorage.
+ * Contient une miniature compressée et les données complètes du projet.
+ */
 export interface RecentProject {
   title: string;
   thumbnail: string;
@@ -39,6 +56,13 @@ export interface RecentProject {
 
 // ─── Thumbnail compressé pour localStorage ────────────────────────────
 
+/**
+ * Génère une miniature JPEG très compressée pour le stockage localStorage.
+ * Le multiplicateur est calculé pour que la miniature ne dépasse pas 60×45 px logiques.
+ * @param canvas - L'instance Fabric.js active.
+ * @param zoom - Le niveau de zoom actuel du canvas.
+ * @returns Une data URL JPEG de faible résolution.
+ */
 function generateThumbnail(canvas: any, zoom: number): string {
   const logW = canvas.getWidth() / zoom;
   const logH = canvas.getHeight() / zoom;
@@ -51,6 +75,13 @@ function generateThumbnail(canvas: any, zoom: number): string {
 
 // ─── Écriture localStorage avec protection quota ───────────────────────
 
+/**
+ * Écrit une valeur dans le localStorage avec protection contre le dépassement de quota.
+ * En cas de quota dépassé, purge les miniatures des projets récents et réessaie.
+ * @param key - La clé localStorage.
+ * @param value - La valeur à stocker.
+ * @returns true si l'écriture a réussi, false sinon.
+ */
 function saveToLocalStorage(key: string, value: string): boolean {
   try {
     localStorage.setItem(key, value);
@@ -73,6 +104,10 @@ function saveToLocalStorage(key: string, value: string): boolean {
 
 // ─── Recent projects ──────────────────────────────────────────────────
 
+/**
+ * Récupère la liste des projets récents depuis le localStorage.
+ * @returns Tableau de projets récents, ou tableau vide en cas d'erreur.
+ */
 export function getRecentProjects(): RecentProject[] {
   try {
     const raw = localStorage.getItem(RECENT_KEY);
@@ -95,6 +130,10 @@ function addToRecent(entry: RecentProject) {
 
 // ─── Save ─────────────────────────────────────────────────────────────
 
+/**
+ * Sauvegarde le projet actif en fichier .easylogo (JSON) et le télécharge.
+ * Met également à jour la liste des projets récents dans le localStorage.
+ */
 export function saveProject() {
   const { canvasInstance, layers } = useCanvasStore.getState();
   const { title, createdAt } = useProjectStore.getState();
@@ -164,6 +203,11 @@ export function saveProject() {
 
 // ─── Open file ────────────────────────────────────────────────────────
 
+/**
+ * Lit un fichier .easylogo depuis le disque et restaure le projet sur le canvas.
+ * @param file - Le fichier .easylogo ou JSON à ouvrir.
+ * @param onRestored - Callback optionnel appelé une fois la restauration terminée.
+ */
 export function openProjectFile(file: File, onRestored?: () => void) {
   const reader = new FileReader();
   reader.onload = (e) => {
@@ -183,6 +227,12 @@ export function openProjectFile(file: File, onRestored?: () => void) {
 
 // ─── Restore project ──────────────────────────────────────────────────
 
+/**
+ * Restaure un projet complet depuis un objet EasyStudioFile sur le canvas actif.
+ * Restaure les objets Fabric, les calques, l'arrière-plan, les transitions et les métadonnées.
+ * @param data - Les données du fichier projet à restaurer.
+ * @param onDone - Callback optionnel appelé une fois la restauration terminée.
+ */
 export function restoreProject(data: EasyStudioFile, onDone?: () => void) {
   const { canvasInstance, setLayers } = useCanvasStore.getState();
   if (!canvasInstance) return;
@@ -242,6 +292,11 @@ export function restoreProject(data: EasyStudioFile, onDone?: () => void) {
     setObjectCounter(canvasInstance.getObjects().length);
     useCanvasStore.getState().resetCounters();
 
+    // Vide l'historique pour qu'un Ctrl+Z ne remonte pas au projet précédent
+    const { clearHistory, pushHistory: ph } = useCanvasStore.getState();
+    clearHistory();
+    ph(JSON.stringify(canvasInstance.toJSON(['id', 'layerName'])));
+
     toast.success(`Projet chargé : ${data.title || 'Sans titre'} ✓`);
     onDone?.();
   });
@@ -249,11 +304,19 @@ export function restoreProject(data: EasyStudioFile, onDone?: () => void) {
 
 // ─── New project ──────────────────────────────────────────────────────
 
+/**
+ * Crée un nouveau projet vide sur le canvas avec les dimensions spécifiées.
+ * Remet à zéro tous les compteurs, calques et états de transitions.
+ * @param title - Titre du nouveau projet (défaut : 'Sans titre').
+ * @param width - Largeur logique du canvas en pixels (défaut : 800).
+ * @param height - Hauteur logique du canvas en pixels (défaut : 600).
+ */
 export function newProject(title = 'Sans titre', width = 800, height = 600) {
   const { canvasInstance, setLayers, pushHistory, resetCounters } = useCanvasStore.getState();
   if (!canvasInstance) return;
 
   canvasInstance.clear();
+  useCanvasStore.getState().clearHistory();
   canvasInstance.setWidth(width);
   canvasInstance.setHeight(height);
   canvasInstance.backgroundColor = '';
@@ -280,6 +343,11 @@ export function newProject(title = 'Sans titre', width = 800, height = 600) {
 
 // ─── Load recent ──────────────────────────────────────────────────────
 
+/**
+ * Charge un projet depuis la liste des projets récents.
+ * @param entry - L'entrée de projet récent à charger.
+ * @param onDone - Callback optionnel appelé une fois le projet chargé.
+ */
 export function loadRecentProject(entry: RecentProject, onDone?: () => void) {
   restoreProject(entry.fileData, onDone);
 }
@@ -290,6 +358,11 @@ function safeFilename(str: string) {
   return str.replace(/[/\\:*?"<>|]/g, '-').trim() || 'projet';
 }
 
+/**
+ * Formate un timestamp en date relative lisible en français.
+ * @param ts - Le timestamp en millisecondes.
+ * @returns Une chaîne comme "il y a 5 min", "il y a 2h", "il y a 3 jours" ou la date courte.
+ */
 export function relativeDate(ts: number): string {
   const diff = Date.now() - ts;
   const min = Math.floor(diff / 60000);

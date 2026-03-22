@@ -1,5 +1,17 @@
+/**
+ * @file transitionStore.ts
+ * @description Store Zustand gérant les états capturés du canvas et les transitions animées
+ * entre ces états. Permet la prévisualisation et l'export d'animations CSS/HTML.
+ * @module store/transitionStore
+ */
+
 import { create } from 'zustand';
 
+/**
+ * @interface CanvasState
+ * @description Snapshot d'un état du canvas capturé pour les transitions.
+ * Contient une miniature PNG basse résolution et le JSON Fabric complet.
+ */
 export interface CanvasState {
   id: string;
   name: string;
@@ -8,14 +20,26 @@ export interface CanvasState {
   timestamp: number;
 }
 
+/**
+ * @typedef TransitionType
+ * @description Types d'animation disponibles entre deux états du canvas.
+ */
 export type TransitionType =
   | 'fade' | 'slideLeft' | 'slideRight' | 'slideUp' | 'slideDown'
   | 'zoomIn' | 'zoomOut' | 'rotate' | 'flip' | 'morph';
 
+/**
+ * @typedef EasingType
+ * @description Fonctions d'interpolation (easing) disponibles pour les transitions.
+ */
 export type EasingType =
   | 'linear' | 'power1.out' | 'power2.out' | 'power3.out'
   | 'back.out' | 'elastic.out' | 'bounce.out' | 'circ.out';
 
+/**
+ * @interface TransitionConfig
+ * @description Configuration complète d'une transition entre deux états canvas.
+ */
 export interface TransitionConfig {
   id: string;
   fromStateId: string;
@@ -27,6 +51,11 @@ export interface TransitionConfig {
   stagger: number;    // 0 – 0.5
 }
 
+/**
+ * @interface TransitionStore
+ * @description Contrat du store transitions : liste des états, configurations
+ * de transitions et actions pour capturer, lire et supprimer des états.
+ */
 interface TransitionStore {
   states: CanvasState[];
   transitions: TransitionConfig[];
@@ -52,6 +81,10 @@ interface TransitionStore {
 
 let stateCounter = 0;
 
+/**
+ * Hook Zustand exposant les états capturés et les transitions du canvas.
+ * @returns L'état complet du store transitions (states, transitions, isPlaying).
+ */
 export const useTransitionStore = create<TransitionStore>((set, get) => ({
   states: [],
   transitions: [],
@@ -125,6 +158,6 @@ export const useTransitionStore = create<TransitionStore>((set, get) => ({
   setFromStateId: (id) => set({ fromStateId: id }),
   setToStateId: (id) => set({ toStateId: id }),
 
-  setStates: (states) => set({ states }),
+  setStates: (states) => { stateCounter = 0; set({ states }); },
   setTransitions: (transitions) => set({ transitions }),
 }));
