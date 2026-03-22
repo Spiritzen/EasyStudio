@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/og-preview.png" alt="EasyStudio Banner" width="100%"/>
+<img src="public/easystudio.jpg" alt="EasyStudio Banner" width="100%"/>
 
 # ⚡ EasyStudio
 
