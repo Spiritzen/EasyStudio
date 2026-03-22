@@ -147,7 +147,7 @@ export default function Footer() {
 
       {/* ── Center: version ── */}
       <div className="footer-center">
-        <span>v1.0 · Open Source · MIT License</span>
+        <span>v1.2.1 · Open Source · MIT License</span>
       </div>
 
       {/* ── Right: links ── */}
