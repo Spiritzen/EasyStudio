@@ -1,10 +1,8 @@
-import { gsap } from 'gsap';
 import type { TransitionConfig, CanvasState } from '../store/transitionStore';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getEasing(easing: string): string {
-  // GSAP easing → CSS easing for CSS output
   const map: Record<string, string> = {
     'linear': 'linear',
     'power1.out': 'ease-out',
@@ -18,15 +16,28 @@ function getEasing(easing: string): string {
   return map[easing] ?? 'ease-out';
 }
 
-function matchObjects(fromObjects: any[], toObjects: any[]): Array<{ from: any; to: any }> {
-  const pairs: Array<{ from: any; to: any }> = [];
-  for (const toObj of toObjects) {
-    const fromObj = fromObjects.find(
-      (f) => f.layerName && f.layerName === toObj.layerName
-    ) ?? fromObjects[toObjects.indexOf(toObj)] ?? null;
-    if (fromObj) pairs.push({ from: fromObj, to: toObj });
-  }
-  return pairs;
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+// JS easing functions keyed by EasingType
+const EASING_FN: Record<string, (t: number) => number> = {
+  'linear':      (t) => t,
+  'power1.out':  (t) => 1 - Math.pow(1 - t, 2),
+  'power2.out':  (t) => 1 - Math.pow(1 - t, 3),
+  'power3.out':  (t) => 1 - Math.pow(1 - t, 4),
+  'back.out':    (t) => { const c1 = 1.70158; const c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); },
+  'elastic.out': (t) => t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 3) + 1,
+  'bounce.out':  (t) => {
+    const n1 = 7.5625, d1 = 2.75;
+    if (t < 1 / d1) return n1 * t * t;
+    if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+    if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+    return n1 * (t -= 2.625 / d1) * t + 0.984375;
+  },
+  'circ.out':    (t) => Math.sqrt(1 - Math.pow(t - 1, 2)),
+};
+
+function getEasingFn(easing: string): (t: number) => number {
+  return EASING_FN[easing] ?? EASING_FN['power2.out'];
 }
 
 // ─── Capture thumbnail ────────────────────────────────────────────────────────
@@ -35,87 +46,130 @@ export function captureStateThumbnail(canvas: any): string {
   return canvas.toDataURL({ format: 'png', multiplier: 0.15 });
 }
 
-// ─── Play transition ──────────────────────────────────────────────────────────
+// ─── Play transition (requestAnimationFrame) ──────────────────────────────────
 
-export async function playTransition(
+export function playTransition(
   canvas: any,
   fromJSON: object,
   toJSON: object,
-  config: TransitionConfig
-): Promise<void> {
-  if (!canvas) return;
+  config: TransitionConfig,
+  onDone?: () => void
+): { cancel: () => void } {
+  if (!canvas) return { cancel: () => {} };
 
-  const { type, duration, easing, delay, stagger } = config;
-  const w: number = canvas.getWidth();
-  const h: number = canvas.getHeight();
+  let rafId: number | null = null;
+  let cancelled = false;
 
-  return new Promise((resolve) => {
-    // Load the FROM state first (should already be on canvas, but ensure it)
-    canvas.loadFromJSON(fromJSON, () => {
-      canvas.renderAll();
+  const cancel = () => {
+    cancelled = true;
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  };
 
-      const objects = canvas.getObjects();
-      const tl = gsap.timeline({
-        delay,
-        onComplete: () => {
-          // Load the TO state
-          canvas.loadFromJSON(toJSON, () => {
-            canvas.renderAll();
-            resolve();
-          });
-        },
-      });
+  // Load FROM state, then kick off the RAF loop
+  canvas.loadFromJSON(fromJSON, () => {
+    if (cancelled) return;
+    canvas.backgroundColor = '';
+    canvas.renderAll();
 
-      objects.forEach((obj: any, i: number) => {
-        const staggerDelay = i * stagger;
+    const duration = (config.duration || 0.6) * 1000;
+    const delayMs  = (config.delay    || 0)   * 1000;
+    const type     = config.type;
+    const logicalW = canvas.getWidth()  / canvas.getZoom();
+    const logicalH = canvas.getHeight() / canvas.getZoom();
 
-        const onUpdate = () => { obj.setCoords(); canvas.requestRenderAll(); };
+    // Snapshot initial values before animation mutates them
+    const initial = canvas.getObjects().map((obj: any) => ({
+      left:    obj.left    ?? 0,
+      top:     obj.top     ?? 0,
+      scaleX:  obj.scaleX  ?? 1,
+      scaleY:  obj.scaleY  ?? 1,
+      opacity: obj.opacity ?? 1,
+      angle:   obj.angle   ?? 0,
+    }));
+
+    const start = performance.now() + delayMs;
+
+    const animate = (now: number) => {
+      if (cancelled) return;
+      if (now < start) { rafId = requestAnimationFrame(animate); return; }
+
+      const progress = Math.min((now - start) / duration, 1);
+      const eased    = getEasingFn(config.easing)(progress);
+
+      canvas.getObjects().forEach((obj: any, i: number) => {
+        const init = initial[i];
+        if (!init) return;
 
         switch (type) {
           case 'fade':
-            tl.fromTo(obj, { opacity: 1 }, { opacity: 0, duration, ease: easing, delay: staggerDelay, onUpdate }, staggerDelay === 0 ? undefined : '<' + staggerDelay);
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'slideLeft':
-            tl.fromTo(obj, { left: obj.left }, { left: (obj.left ?? 0) - w, opacity: 0, duration, ease: easing, onUpdate }, staggerDelay === 0 ? 0 : '<' + staggerDelay);
+            obj.set('left',    lerp(init.left, init.left - logicalW, eased));
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'slideRight':
-            tl.fromTo(obj, { left: obj.left }, { left: (obj.left ?? 0) + w, opacity: 0, duration, ease: easing, onUpdate }, staggerDelay === 0 ? 0 : '<' + staggerDelay);
+            obj.set('left',    lerp(init.left, init.left + logicalW, eased));
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'slideUp':
-            tl.fromTo(obj, { top: obj.top }, { top: (obj.top ?? 0) - h, opacity: 0, duration, ease: easing, onUpdate }, staggerDelay === 0 ? 0 : '<' + staggerDelay);
+            obj.set('top',     lerp(init.top, init.top - logicalH, eased));
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'slideDown':
-            tl.fromTo(obj, { top: obj.top }, { top: (obj.top ?? 0) + h, opacity: 0, duration, ease: easing, onUpdate }, staggerDelay === 0 ? 0 : '<' + staggerDelay);
+            obj.set('top',     lerp(init.top, init.top + logicalH, eased));
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'zoomIn':
-            tl.fromTo(obj, { scaleX: obj.scaleX, scaleY: obj.scaleY, opacity: 1 }, { scaleX: (obj.scaleX ?? 1) * 2, scaleY: (obj.scaleY ?? 1) * 2, opacity: 0, duration, ease: easing, onUpdate }, staggerDelay === 0 ? 0 : '<' + staggerDelay);
+            obj.set('scaleX',  lerp(init.scaleX, init.scaleX * 2, eased));
+            obj.set('scaleY',  lerp(init.scaleY, init.scaleY * 2, eased));
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'zoomOut':
-            tl.fromTo(obj, { scaleX: obj.scaleX, scaleY: obj.scaleY, opacity: 1 }, { scaleX: 0, scaleY: 0, opacity: 0, duration, ease: easing, onUpdate }, staggerDelay === 0 ? 0 : '<' + staggerDelay);
+            obj.set('scaleX',  lerp(init.scaleX, 0, eased));
+            obj.set('scaleY',  lerp(init.scaleY, 0, eased));
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'rotate':
-            tl.fromTo(obj, { angle: obj.angle ?? 0, opacity: 1 }, { angle: (obj.angle ?? 0) + 180, opacity: 0, duration, ease: easing, onUpdate }, staggerDelay === 0 ? 0 : '<' + staggerDelay);
+            obj.set('angle',   lerp(init.angle, init.angle + 180, eased));
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'flip':
-            tl.fromTo(obj, { scaleX: obj.scaleX ?? 1, opacity: 1 }, { scaleX: 0, opacity: 0, duration: duration / 2, ease: 'power2.in', onUpdate }, staggerDelay === 0 ? 0 : '<' + staggerDelay);
+            obj.set('scaleX',  lerp(init.scaleX, 0, eased));
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'morph':
           default:
-            tl.fromTo(obj, { opacity: 1 }, { opacity: 0, duration, ease: easing, onUpdate }, staggerDelay === 0 ? 0 : '<' + staggerDelay);
+            obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
         }
+        obj.setCoords();
       });
 
-      if (objects.length === 0) {
-        gsap.delayedCall(duration, () => {
+      canvas.requestRenderAll();
+
+      if (progress < 1) {
+        rafId = requestAnimationFrame(animate);
+      } else {
+        if (!cancelled) {
           canvas.loadFromJSON(toJSON, () => {
-            canvas.renderAll();
-            resolve();
+            if (!cancelled) {
+              canvas.backgroundColor = '';
+              canvas.renderAll();
+              onDone?.();
+            }
           });
-        });
+        }
       }
-    });
+    };
+
+    rafId = requestAnimationFrame(animate);
   });
+
+  return { cancel };
 }
 
 // ─── Generate CSS keyframes ───────────────────────────────────────────────────
@@ -132,57 +186,26 @@ export function generateCSSKeyframes(config: TransitionConfig, objectNames: stri
   const getKeyframes = (name: string): string => {
     switch (type) {
       case 'fade':
-        return `@keyframes ${name} {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}`;
+        return `@keyframes ${name} {\n  from { opacity: 1; }\n  to   { opacity: 0; }\n}`;
       case 'slideLeft':
-        return `@keyframes ${name} {
-  from { transform: translateX(0); opacity: 1; }
-  to   { transform: translateX(-100%); opacity: 0; }
-}`;
+        return `@keyframes ${name} {\n  from { transform: translateX(0); opacity: 1; }\n  to   { transform: translateX(-100%); opacity: 0; }\n}`;
       case 'slideRight':
-        return `@keyframes ${name} {
-  from { transform: translateX(0); opacity: 1; }
-  to   { transform: translateX(100%); opacity: 0; }
-}`;
+        return `@keyframes ${name} {\n  from { transform: translateX(0); opacity: 1; }\n  to   { transform: translateX(100%); opacity: 0; }\n}`;
       case 'slideUp':
-        return `@keyframes ${name} {
-  from { transform: translateY(0); opacity: 1; }
-  to   { transform: translateY(-100%); opacity: 0; }
-}`;
+        return `@keyframes ${name} {\n  from { transform: translateY(0); opacity: 1; }\n  to   { transform: translateY(-100%); opacity: 0; }\n}`;
       case 'slideDown':
-        return `@keyframes ${name} {
-  from { transform: translateY(0); opacity: 1; }
-  to   { transform: translateY(100%); opacity: 0; }
-}`;
+        return `@keyframes ${name} {\n  from { transform: translateY(0); opacity: 1; }\n  to   { transform: translateY(100%); opacity: 0; }\n}`;
       case 'zoomIn':
-        return `@keyframes ${name} {
-  from { transform: scale(1); opacity: 1; }
-  to   { transform: scale(2); opacity: 0; }
-}`;
+        return `@keyframes ${name} {\n  from { transform: scale(1); opacity: 1; }\n  to   { transform: scale(2); opacity: 0; }\n}`;
       case 'zoomOut':
-        return `@keyframes ${name} {
-  from { transform: scale(1); opacity: 1; }
-  to   { transform: scale(0); opacity: 0; }
-}`;
+        return `@keyframes ${name} {\n  from { transform: scale(1); opacity: 1; }\n  to   { transform: scale(0); opacity: 0; }\n}`;
       case 'rotate':
-        return `@keyframes ${name} {
-  from { transform: rotate(0deg); opacity: 1; }
-  to   { transform: rotate(180deg); opacity: 0; }
-}`;
+        return `@keyframes ${name} {\n  from { transform: rotate(0deg); opacity: 1; }\n  to   { transform: rotate(180deg); opacity: 0; }\n}`;
       case 'flip':
-        return `@keyframes ${name} {
-  0%   { transform: scaleX(1); opacity: 1; }
-  50%  { transform: scaleX(0); opacity: 0; }
-  100% { transform: scaleX(-1); opacity: 0; }
-}`;
+        return `@keyframes ${name} {\n  0%   { transform: scaleX(1); opacity: 1; }\n  50%  { transform: scaleX(0); opacity: 0; }\n  100% { transform: scaleX(-1); opacity: 0; }\n}`;
       case 'morph':
       default:
-        return `@keyframes ${name} {
-  from { opacity: 1; filter: blur(0px); }
-  to   { opacity: 0; filter: blur(8px); }
-}`;
+        return `@keyframes ${name} {\n  from { opacity: 1; filter: blur(0px); }\n  to   { opacity: 0; filter: blur(8px); }\n}`;
     }
   };
 
@@ -231,106 +254,33 @@ export function generateHTMLPreview(
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EasyStudio — Aperçu Transition ${config.type}</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #1a1a2e;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    font-family: system-ui, sans-serif;
-    color: #fff;
-    gap: 24px;
-  }
+  body { background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: system-ui, sans-serif; color: #fff; gap: 24px; }
   h1 { font-size: 18px; color: #9b8eff; letter-spacing: 0.05em; }
-  .stage {
-    position: relative;
-    width: 480px;
-    height: 320px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-  .frame {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-  #frameFrom {
-    z-index: 2;
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-  #frameTo {
-    z-index: 1;
-    opacity: 0;
-  }
-  #frameFrom.animating {
-    animation: exitAnim ${config.duration}s ${cssEasing} ${config.delay}s both;
-  }
-  #frameTo.animating {
-    animation: enterAnim ${config.duration}s ${cssEasing} ${config.delay}s both;
-  }
-
-  @keyframes exitAnim {
-    from { opacity: 1; transform: none; ${filterTo !== 'none' ? 'filter: none;' : ''} }
-    to   { opacity: 0; transform: ${transformTo}; ${filterTo !== 'none' ? `filter: ${filterTo};` : ''} }
-  }
-  @keyframes enterAnim {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-
-  button {
-    padding: 12px 32px;
-    background: #9b8eff;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
+  .stage { position: relative; width: 480px; height: 320px; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .frame img { width: 100%; height: 100%; object-fit: contain; }
+  #frameFrom { z-index: 2; opacity: 1; transform: none; }
+  #frameTo { z-index: 1; opacity: 0; }
+  #frameFrom.animating { animation: exitAnim ${config.duration}s ${cssEasing} ${config.delay}s both; }
+  #frameTo.animating { animation: enterAnim ${config.duration}s ${cssEasing} ${config.delay}s both; }
+  @keyframes exitAnim { from { opacity: 1; transform: none; ${filterTo !== 'none' ? 'filter: none;' : ''} } to { opacity: 0; transform: ${transformTo}; ${filterTo !== 'none' ? `filter: ${filterTo};` : ''} } }
+  @keyframes enterAnim { from { opacity: 0; } to { opacity: 1; } }
+  button { padding: 12px 32px; background: #9b8eff; color: #fff; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; transition: background 0.2s; }
   button:hover { background: #7c6bdb; }
-  .info {
-    font-size: 12px;
-    color: #6b6b8a;
-    text-align: center;
-  }
+  .info { font-size: 12px; color: #6b6b8a; text-align: center; }
 </style>
 </head>
 <body>
 <h1>Transition : ${config.type} — ${config.duration}s</h1>
-
 <div class="stage">
-  <div class="frame" id="frameTo">
-    <img src="${toState.thumbnail}" alt="${toState.name}" />
-  </div>
-  <div class="frame" id="frameFrom">
-    <img src="${fromState.thumbnail}" alt="${fromState.name}" />
-  </div>
+  <div class="frame" id="frameTo"><img src="${toState.thumbnail}" alt="${toState.name}" /></div>
+  <div class="frame" id="frameFrom"><img src="${fromState.thumbnail}" alt="${fromState.name}" /></div>
 </div>
-
 <button onclick="play()">▶ Jouer la transition</button>
-
-<p class="info">
-  De : <strong>${fromState.name}</strong> → Vers : <strong>${toState.name}</strong><br>
-  Type : ${config.type} | Easing : ${config.easing} | Délai : ${config.delay}s
-</p>
-
+<p class="info">De : <strong>${fromState.name}</strong> → Vers : <strong>${toState.name}</strong><br>Type : ${config.type} | Easing : ${config.easing} | Délai : ${config.delay}s</p>
 <script>
   let playing = false;
   function play() {
@@ -338,24 +288,13 @@ export function generateHTMLPreview(
     playing = true;
     const from = document.getElementById('frameFrom');
     const to = document.getElementById('frameTo');
-    from.classList.remove('animating');
-    to.classList.remove('animating');
-    to.style.opacity = '0';
-    from.style.opacity = '1';
-    from.style.transform = 'none';
-    void from.offsetWidth; // reflow
-    from.classList.add('animating');
-    to.classList.add('animating');
-    to.style.opacity = '';
-    setTimeout(() => {
-      from.classList.remove('animating');
-      to.classList.remove('animating');
-      from.style.opacity = '0';
-      to.style.opacity = '1';
-      playing = false;
-    }, (${config.duration} + ${config.delay}) * 1000 + 100);
+    from.classList.remove('animating'); to.classList.remove('animating');
+    to.style.opacity = '0'; from.style.opacity = '1'; from.style.transform = 'none';
+    void from.offsetWidth;
+    from.classList.add('animating'); to.classList.add('animating'); to.style.opacity = '';
+    setTimeout(() => { from.classList.remove('animating'); to.classList.remove('animating'); from.style.opacity = '0'; to.style.opacity = '1'; playing = false; }, (${config.duration} + ${config.delay}) * 1000 + 100);
   }
-</script>
+<\/script>
 </body>
 </html>`;
 }

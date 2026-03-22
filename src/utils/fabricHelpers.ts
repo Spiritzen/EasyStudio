@@ -3,6 +3,9 @@ import { fabric } from 'fabric';
 let objectCounter = 0;
 const getId = () => `obj_${++objectCounter}_${Date.now()}`;
 
+export function resetObjectCounter() { objectCounter = 0; }
+export function setObjectCounter(n: number) { objectCounter = n; }
+
 // ─── Helpers internes ───────────────────────────────────────────────
 
 function centerOnCanvas(canvas: fabric.Canvas, obj: fabric.Object) {
@@ -18,9 +21,16 @@ function centerOnCanvas(canvas: fabric.Canvas, obj: fabric.Object) {
   obj.setCoords();
 }
 
+// ─── Guard canvas initialisé ────────────────────────────────────────
+
+function isReady(canvas: fabric.Canvas | null): canvas is fabric.Canvas {
+  return !!canvas && !!(canvas as any).lowerCanvasEl;
+}
+
 // ─── Formes de base ─────────────────────────────────────────────────
 
-export function addRect(canvas: fabric.Canvas) {
+export function addRect(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
   const cw = canvas.getWidth() / zoom;
   const ch = canvas.getHeight() / zoom;
@@ -36,7 +46,8 @@ export function addRect(canvas: fabric.Canvas) {
   return rect;
 }
 
-export function addCircle(canvas: fabric.Canvas) {
+export function addCircle(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
   const cw = canvas.getWidth() / zoom;
   const ch = canvas.getHeight() / zoom;
@@ -52,7 +63,8 @@ export function addCircle(canvas: fabric.Canvas) {
   return circle;
 }
 
-export function addTriangle(canvas: fabric.Canvas) {
+export function addTriangle(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
   const cw = canvas.getWidth() / zoom;
   const ch = canvas.getHeight() / zoom;
@@ -68,7 +80,8 @@ export function addTriangle(canvas: fabric.Canvas) {
   return tri;
 }
 
-export function addText(canvas: fabric.Canvas, text = 'EasyStudio') {
+export function addText(canvas: fabric.Canvas | null, text = 'EasyStudio') {
+  if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
   const cw = canvas.getWidth() / zoom;
   const ch = canvas.getHeight() / zoom;
@@ -88,7 +101,8 @@ export function addText(canvas: fabric.Canvas, text = 'EasyStudio') {
 
 // ─── Import image (fichier local) ────────────────────────────────────
 
-export function addImage(canvas: fabric.Canvas, url: string) {
+export function addImage(canvas: fabric.Canvas | null, url: string) {
+  if (!isReady(canvas)) return;
   fabric.Image.fromURL(url, (img) => {
     centerOnCanvas(canvas, img);
     (img as any).id = getId();
@@ -101,7 +115,8 @@ export function addImage(canvas: fabric.Canvas, url: string) {
 
 // ─── Import image depuis un Blob (drag & drop, clipboard) ───────────
 
-export function addImageFromBlob(canvas: fabric.Canvas, blob: Blob): Promise<void> {
+export function addImageFromBlob(canvas: fabric.Canvas | null, blob: Blob): Promise<void> {
+  if (!isReady(canvas)) return Promise.resolve();
   return new Promise((resolve) => {
     const url = URL.createObjectURL(blob);
     fabric.Image.fromURL(url, (img) => {
@@ -119,7 +134,8 @@ export function addImageFromBlob(canvas: fabric.Canvas, blob: Blob): Promise<voi
 
 // ─── Import image depuis une URL (avec gestion CORS) ─────────────────
 
-export function addImageFromURL(canvas: fabric.Canvas, url: string): Promise<void> {
+export function addImageFromURL(canvas: fabric.Canvas | null, url: string): Promise<void> {
+  if (!isReady(canvas)) return Promise.resolve();
   return new Promise((resolve, reject) => {
     // Test CORS avec un HTMLImageElement avant de laisser Fabric charger
     const testImg = new Image();
@@ -147,10 +163,11 @@ export function addImageFromURL(canvas: fabric.Canvas, url: string): Promise<voi
 // ─── Import SVG (string) ─────────────────────────────────────────────
 
 export function addSVGFromString(
-  canvas: fabric.Canvas,
+  canvas: fabric.Canvas | null,
   svgString: string,
   onDone?: (group: fabric.Object) => void
 ) {
+  if (!isReady(canvas)) return;
   fabric.loadSVGFromString(svgString, (objects, options) => {
     if (!objects || objects.length === 0) return;
     const group = fabric.util.groupSVGElements(objects, options);
@@ -167,7 +184,8 @@ export function addSVGFromString(
 
 // ─── Import SVG depuis un fichier .svg ───────────────────────────────
 
-export function addSVGFromFile(canvas: fabric.Canvas, file: File): Promise<void> {
+export function addSVGFromFile(canvas: fabric.Canvas | null, file: File): Promise<void> {
+  if (!isReady(canvas)) return Promise.resolve();
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -182,7 +200,8 @@ export function addSVGFromFile(canvas: fabric.Canvas, file: File): Promise<void>
 
 // ─── Décomposer un groupe en objets individuels ──────────────────────
 
-export function ungroupSelected(canvas: fabric.Canvas) {
+export function ungroupSelected(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const active = canvas.getActiveObject();
   if (!active || active.type !== 'group') return;
 
@@ -225,7 +244,8 @@ export function ungroupSelected(canvas: fabric.Canvas) {
 
 // ─── Grouper la sélection ────────────────────────────────────────────
 
-export function groupSelected(canvas: fabric.Canvas) {
+export function groupSelected(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const activeObjects = canvas.getActiveObjects();
   if (activeObjects.length < 2) return;
   canvas.discardActiveObject();
@@ -243,7 +263,8 @@ export function groupSelected(canvas: fabric.Canvas) {
 
 // ─── Supprimer la sélection ──────────────────────────────────────────
 
-export function deleteSelected(canvas: fabric.Canvas) {
+export function deleteSelected(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const activeObjects = canvas.getActiveObjects();
   canvas.discardActiveObject();
   activeObjects.forEach((obj) => canvas.remove(obj));
@@ -252,7 +273,8 @@ export function deleteSelected(canvas: fabric.Canvas) {
 
 // ─── Nouvelles formes ────────────────────────────────────────────────
 
-export function addLine(canvas: fabric.Canvas) {
+export function addLine(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const zoom = canvas.getZoom();
   const cw = canvas.getWidth() / zoom;
   const cy = canvas.getHeight() / zoom / 2;
@@ -269,7 +291,8 @@ export function addLine(canvas: fabric.Canvas) {
   return line;
 }
 
-export function addArrow(canvas: fabric.Canvas) {
+export function addArrow(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const svgArrow = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
     <line x1="0" y1="40" x2="240" y2="40" stroke="#6c63ff" stroke-width="6" stroke-linecap="round"/>
     <polygon points="235,18 300,40 235,62" fill="#6c63ff"/>
@@ -277,7 +300,8 @@ export function addArrow(canvas: fabric.Canvas) {
   addSVGFromString(canvas, svgArrow);
 }
 
-export function addStar(canvas: fabric.Canvas) {
+export function addStar(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const svgStar = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
     <polygon points="50,5 61,35 93,36 67,56 77,86 50,68 24,86 33,56 7,36 39,35"
       fill="#f59e0b" stroke="none"/>
@@ -288,9 +312,10 @@ export function addStar(canvas: fabric.Canvas) {
 // ─── Présets texte ────────────────────────────────────────────────────
 
 export function addTextPreset(
-  canvas: fabric.Canvas,
+  canvas: fabric.Canvas | null,
   preset: 'title' | 'subtitle' | 'body'
 ) {
+  if (!isReady(canvas)) return;
   const configs = {
     title:    { text: 'Titre',        fontSize: 48, fontWeight: 'bold',   fill: '#ffffff' },
     subtitle: { text: 'Sous-titre',   fontSize: 28, fontWeight: 'normal', fill: '#c5c5e0' },
@@ -318,7 +343,8 @@ export function addTextPreset(
   return tb;
 }
 
-export function addTextArc(canvas: fabric.Canvas) {
+export function addTextArc(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const svgArc = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200">
     <path id="arc" d="M 30,150 Q 150,30 270,150" fill="none"/>
     <text font-family="Inter,sans-serif" font-size="24" fill="#ffffff" font-weight="bold">
@@ -330,7 +356,8 @@ export function addTextArc(canvas: fabric.Canvas) {
 
 // ─── Dupliquer la sélection ───────────────────────────────────────────
 
-export function duplicateSelected(canvas: fabric.Canvas) {
+export function duplicateSelected(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
   const active = canvas.getActiveObject();
   if (!active) return;
 
@@ -360,7 +387,8 @@ export function duplicateSelected(canvas: fabric.Canvas) {
 
 export type AlignDirection = 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom';
 
-export function alignObjects(canvas: fabric.Canvas, direction: AlignDirection) {
+export function alignObjects(canvas: fabric.Canvas | null, direction: AlignDirection) {
+  if (!isReady(canvas)) return;
   const objects = canvas.getActiveObjects();
   if (!objects.length) return;
 

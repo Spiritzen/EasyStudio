@@ -50,21 +50,28 @@
 - 3 modes d'import — Upload fichier · Drag & Drop · URL · Ctrl+V
 - Suppression de fond automatique (tolérance ajustable)
 - Filtres image — Luminosité · Contraste · Saturation · N&B · Blur · Hue
+- Tooltips contextuels sur tous les outils avec raccourcis clavier
 
 ### 📐 Calques & Hiérarchie
 - Système de calques avec groupes logiques (style Photoshop)
-- Drag & drop pour réordonner le z-index
-- Renommage universel double-clic
+- **Drag & drop fluide style Figma** — réordonner et imbriquer avec animation 200ms
+- Réordonnancement à la racine ET à l'intérieur des groupes
+- Renommage universel double-clic — tous les objets et calques
 - Toggle visibilité 👁 et verrouillage 🔒 par calque
 - Héritage visibilité/lock sur tous les enfants d'un groupe
+- **Suppression avec confirmation** — calque vide ou avec enfants
+- **Menu contextuel clic droit** — Renommer · Dupliquer · Monter · Descendre · Supprimer
+- Bouton tout supprimer avec confirmation
 
 ### ⚡ Transitions & Animations
 - Système d'États A → B (snapshots du canvas)
 - 8 types — Fondu · Glissement · Zoom · Rotation · Retournement · Morphose
 - Moteur GSAP — easing, durée, stagger, delay
-- Preview live sur le canvas
+- Fallback requestAnimationFrame natif si besoin
+- Preview live sur le canvas avec bouton Boucle
 - **Export CSS `@keyframes` prêt à coller dans votre projet**
 - **Export HTML animé autonome téléchargeable**
+- Auto-sélection États A/B après capture
 
 ### 📦 Export multi-format
 - SVG → vectoriel, scalable à l'infini
@@ -85,6 +92,7 @@
 - Tons sombres populaires — Tailwind · Zinc · Slate · VS Code dark
 - Tons clairs — Blanc cassé · Bleu clair · Vert clair
 - Couleur personnalisée hex + color picker natif
+- Slider opacité 0–100%
 - **Non exporté** — aide visuelle uniquement
 
 ### 💾 Gestion de projets
@@ -93,6 +101,13 @@
 - Rechargement fidèle — canvas, calques, arrière-plan, transitions
 - Projets récents (5 derniers) avec miniature et date relative
 - Titre de projet éditable directement dans la toolbar
+
+### 🎯 Expérience utilisateur
+- **Onboarding modal** au premier lancement — présentation des features
+- **Overlay d'accueil** sur canvas vide — 3 actions rapides cliquables
+- **Barre de statut contextuelle** — infos selon la sélection + raccourcis
+- Placeholders enrichis dans tous les panels — guidage naturel
+- Messages d'aide disparaissant après le premier usage
 
 ---
 
@@ -109,8 +124,9 @@
 | jsPDF | Export PDF |
 | html2canvas | Capture canvas → image |
 | react-colorful | Color picker |
-| @dnd-kit | Drag & drop calques |
+| @dnd-kit | Drag & drop calques style Figma |
 | GitHub Pages | Hébergement gratuit |
+| GitHub Actions | CI/CD déploiement automatique |
 
 ---
 
@@ -150,6 +166,8 @@ npm run deploy
 
 ➡️ **https://spiritzen.github.io/EasyStudio/**
 
+Le déploiement est aussi **automatique via GitHub Actions** à chaque push sur `main`.
+
 ---
 
 ## 💾 Format de sauvegarde .easylogo
@@ -164,7 +182,7 @@ Le format `.easylogo` est un fichier JSON lisible et portable :
   "createdAt": 1234567890,
   "updatedAt": 1234567890,
   "canvas": { "width": 800, "height": 600 },
-  "background": { "bgColor": "#ffffff", "bgOpacity": 100 },
+  "background": { "bgColor": "#2a2a3a", "bgOpacity": 100 },
   "objects": { "...objets Fabric.js sérialisés..." },
   "layers": [ "...hiérarchie des calques..." ],
   "states": [ "...états de transition..." ],
@@ -174,30 +192,60 @@ Le format `.easylogo` est un fichier JSON lisible et portable :
 
 ---
 
+## 📋 Changelog
+
+### v1.1 — UX & Stabilité
+- ✨ Drag & drop hiérarchie style Figma — racine ET dans les groupes
+- ✨ Transitions GSAP fonctionnelles — 8 types + export CSS/HTML animé
+- ✨ Suppression calques avec confirmation et menu contextuel clic droit
+- ✨ Onboarding modal premier lancement
+- ✨ Overlay d'accueil canvas vide avec actions rapides
+- ✨ Tooltips sur tous les outils avec raccourcis
+- ✨ Barre de statut contextuelle
+- ✨ CI/CD GitHub Actions — déploiement automatique
+- 🐛 Corrections guards canvas (DOMException résolues)
+- 🐛 Footer année dynamique `new Date().getFullYear()`
+- 🐛 Zoom auto canvas au démarrage et changement template
+
+### v1.0 — Initial Release
+- Canvas vectoriel Fabric.js complet
+- Import images multi-format + drag & drop + URL + Ctrl+V
+- Export SVG · PNG · WebP · JPEG · PDF · HTML/CSS
+- Système de calques avec groupes logiques
+- Arrière-plan de travail non exporté
+- Module IA Claude API optionnel
+- Templates prédéfinis 8 formats
+- Gestion projets .easylogo
+
+---
+
 ## 🏗 Architecture
 
 ```
 src/
 ├── components/
 │   ├── Toolbar/           # Barre principale + menus
-│   ├── LayersPanel/       # Hiérarchie calques + groupes
-│   ├── Canvas/            # Fabric.js + hooks
+│   ├── LayersPanel/       # Hiérarchie calques + drag & drop
+│   ├── Canvas/            # Fabric.js + hooks + zoom
 │   ├── Inspector/         # Propriétés objet sélectionné
 │   ├── Effects/           # Blur · Ombre · Arrondi · Transitions
 │   ├── AIPanel/           # Module Claude API
 │   ├── Background/        # Arrière-plan de travail
 │   ├── CodeOutput/        # Générateur HTML/CSS
+│   ├── UI/                # Toast · Tooltip · Onboarding · StatusBar
 │   └── Footer/            # Liens auteur
 ├── store/
 │   ├── canvasStore.ts     # État global canvas + layers
 │   ├── exportStore.ts     # Formats d'export
 │   ├── transitionStore.ts # États A/B + animations
 │   ├── backgroundStore.ts # Arrière-plan
+│   ├── uiStore.ts         # Grille · Règles · UI state
 │   └── aiStore.ts         # Clé API + historique
 └── utils/
     ├── exportUtils.ts      # SVG · PNG · PDF · WebP · JPEG
     ├── codeGenerator.ts    # HTML/CSS depuis canvas
-    ├── transitionEngine.ts # GSAP + CSS keyframes
+    ├── transitionEngine.ts # GSAP + CSS keyframes + fallback RAF
+    ├── zoomUtils.ts        # Zoom auto + fit to view
     └── fabricHelpers.ts    # Helpers Fabric.js
 ```
 
@@ -236,13 +284,10 @@ Amiens, France · Télétravail possible
 
 ---
 
-
 <div align="center">
 
 **⭐ Si EasyStudio vous est utile, une étoile sur GitHub c'est toujours apprécié !**
 
 *EasyStudio · MIT License · 2026*
 
-
 </div>
-

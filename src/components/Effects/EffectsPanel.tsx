@@ -31,11 +31,11 @@ export default function EffectsPanel() {
     }
   }, [selectedId]);
 
+  // Applique réellement le filtre Blur sur l'objet Fabric (opération lourde)
   const applyBlur = (value: number) => {
     const obj = getObj();
     if (!obj || !canvasInstance) return;
     const objAny = obj as any;
-    setBlur(value);
     const blurVal = value / 100;
     if (value === 0) {
       objAny.filters = (objAny.filters as fabric.IBaseFilter[] | undefined)?.filter((f: any) => f.type !== 'Blur') || [];
@@ -104,7 +104,8 @@ export default function EffectsPanel() {
                 min={0}
                 max={100}
                 value={blur}
-                onChange={(e) => applyBlur(+e.target.value)}
+                onChange={(e) => setBlur(+e.target.value)}
+                onPointerUp={(e) => applyBlur(+(e.target as HTMLInputElement).value)}
                 style={{ flex: 1 }}
               />
               <span style={{ minWidth: 30, color: '#c5c5e0', fontSize: 11 }}>{blur}</span>

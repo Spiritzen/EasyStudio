@@ -42,7 +42,6 @@ function buildMergedLayers(canvas: fabric.Canvas, currentLayers: LayerItem[]): L
     } else if (canvasIds.has(prev.id)) {
       const updated = canvasItems.find((c) => c.id === prev.id);
       if (updated) merged.push(updated);
-      // if not found = object deleted, skip it
     }
   }
 
@@ -63,7 +62,7 @@ export function useCanvas(containerRef: React.RefObject<HTMLDivElement>) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const pathBeingCreated = useRef(false);
-  const { setCanvas, setLayers, setSelectedId, pushHistory } = useCanvasStore();
+  const { setCanvas, setLayers, setSelectedId, setSelectedObject, pushHistory } = useCanvasStore();
 
   const syncLayers = useCallback(() => {
     if (!fabricRef.current) return;
@@ -81,73 +80,7 @@ export function useCanvas(containerRef: React.RefObject<HTMLDivElement>) {
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    const fc = new fabric.Canvas(canvasRef.current, {
-      width: 800,
-      height: 600,
-      backgroundColor: '',   // transparent — background managed by CSS div
-      preserveObjectStacking: true,
-    });
-
-    fabricRef.current = fc;
-    setCanvas(fc);
-
-    // Snap to grid
-    fc.on('object:moving', (e) => {
-      if (fc.isDrawingMode) return;
-      if (!e.target) return;
-      const obj = e.target;
-      obj.set({
-        left: Math.round((obj.left || 0) / SNAP_GRID) * SNAP_GRID,
-        top: Math.round((obj.top || 0) / SNAP_GRID) * SNAP_GRID,
-      });
-    });
-
-    fc.on('selection:created', (e) => {
-      const obj = e.selected?.[0];
-      if (obj) setSelectedId((obj as any).id);
-    });
-    fc.on('selection:updated', (e) => {
-      const obj = e.selected?.[0];
-      if (obj) setSelectedId((obj as any).id);
-    });
-    fc.on('selection:cleared', () => setSelectedId(null));
-
-    fc.on('object:added', () => {
-      if (pathBeingCreated.current) return;
-      saveHistory();
-    });
-    fc.on('object:modified', saveHistory);
-    fc.on('object:removed', saveHistory);
-
-    // ── Path created (free drawing) ─────────────────────────────────
-    fc.on('before:path:created', () => {
-      pathBeingCreated.current = true;
-    });
-
-    fc.on('path:created', (e: any) => {
-      pathBeingCreated.current = false;
-      const path = e.path;
-      if (!path) return;
-
-      const store = useCanvasStore.getState();
-      const count = store.drawingPathCount + 1;
-      path.id = `path_${count}_${Date.now()}`;
-      path.layerName = `Tracé ${count}`;
-
-      if (store.activeBrush === 'eraser') {
-        path.set({ globalCompositeOperation: 'destination-out' });
-      }
-
-      store.incrementPathCount();
-      fc.setActiveObject(path);
-      setSelectedId(path.id);
-
-      const json = JSON.stringify(fc.toJSON(['id', 'layerName']));
-      store.pushHistory(json);
-      syncLayers();
-    });
-
-    // ── Paste from clipboard ──────────────────────────────────────────
+    // ── Paste from clipboard (registered before rAF) ──
     const handlePaste = async (e: ClipboardEvent) => {
       const items = Array.from(e.clipboardData?.items ?? []);
       for (const item of items) {
@@ -161,28 +94,119 @@ export function useCanvas(containerRef: React.RefObject<HTMLDivElement>) {
         }
       }
     };
-
     window.addEventListener('paste', handlePaste);
 
-    pushHistory(JSON.stringify(fc.toJSON(['id', 'layerName'])));
-
-    // Auto-fit canvas to container on mount
-    requestAnimationFrame(() => {
-      if (containerRef.current) fitToView(fc, containerRef.current);
-    });
-
-    // Re-fit on window resize
+    // ── Re-fit on window resize ──
     const handleResize = () => {
-      if (containerRef.current && fabricRef.current) {
-        fitToView(fabricRef.current, containerRef.current);
-      }
+      if (!fabricRef.current || !(fabricRef.current as any).lowerCanvasEl) return;
+      if (containerRef.current) fitToView(fabricRef.current, containerRef.current);
     };
     window.addEventListener('resize', handleResize);
 
+    // ── Init Fabric inside rAF so the DOM is fully mounted ──
+    const frameId = requestAnimationFrame(() => {
+      if (!canvasRef.current) return;
+
+      const fc = new fabric.Canvas(canvasRef.current, {
+        width: 800,
+        height: 600,
+        backgroundColor: '',   // transparent — background managed by CSS div
+        preserveObjectStacking: true,
+      });
+
+      fabricRef.current = fc;
+      setCanvas(fc);
+
+      // Snap to grid + live Inspector update
+      fc.on('object:moving', (e) => {
+        if (fc.isDrawingMode) return;
+        if (!e.target) return;
+        const obj = e.target;
+        obj.set({
+          left: Math.round((obj.left || 0) / SNAP_GRID) * SNAP_GRID,
+          top:  Math.round((obj.top  || 0) / SNAP_GRID) * SNAP_GRID,
+        });
+        setSelectedObject(fc.getActiveObject());
+      });
+
+      const updateSelectedObject = () => setSelectedObject(fc.getActiveObject());
+      fc.on('object:scaling',  updateSelectedObject);
+      fc.on('object:rotating', updateSelectedObject);
+      fc.on('object:modified', updateSelectedObject);
+
+      fc.on('selection:created', (e) => {
+        const obj = e.selected?.[0];
+        if (obj) setSelectedId((obj as any).id);
+      });
+      fc.on('selection:updated', (e) => {
+        const obj = e.selected?.[0];
+        if (obj) setSelectedId((obj as any).id);
+      });
+      fc.on('selection:cleared', () => setSelectedId(null));
+
+      fc.on('object:added', () => {
+        if (pathBeingCreated.current) return;
+        saveHistory();
+      });
+      fc.on('object:modified', saveHistory);
+      fc.on('object:removed', saveHistory);
+
+      // ── Path created (free drawing) ──
+      fc.on('before:path:created', () => {
+        pathBeingCreated.current = true;
+      });
+
+      fc.on('path:created', (e: any) => {
+        pathBeingCreated.current = false;
+        const path = e.path;
+        if (!path) return;
+
+        const store = useCanvasStore.getState();
+        const count = store.drawingPathCount + 1;
+        path.id = `path_${count}_${Date.now()}`;
+        path.layerName = `Tracé ${count}`;
+
+        if (store.activeBrush === 'eraser') {
+          path.set({ globalCompositeOperation: 'destination-out' });
+        }
+
+        store.incrementPathCount();
+        fc.setActiveObject(path);
+        setSelectedId(path.id);
+
+        const json = JSON.stringify(fc.toJSON(['id', 'layerName']));
+        store.pushHistory(json);
+        syncLayers();
+      });
+
+      pushHistory(JSON.stringify(fc.toJSON(['id', 'layerName'])));
+
+      // Auto-fit once canvas is ready
+      if (containerRef.current && (fc as any).lowerCanvasEl) {
+        fitToView(fc, containerRef.current);
+      }
+    });
+
     return () => {
+      cancelAnimationFrame(frameId);
       window.removeEventListener('paste', handlePaste);
       window.removeEventListener('resize', handleResize);
-      fc.dispose();
+      if (fabricRef.current) {
+        // Retire explicitement tous les listeners Fabric avant dispose()
+        fabricRef.current.off('object:moving');
+        fabricRef.current.off('object:scaling');
+        fabricRef.current.off('object:rotating');
+        fabricRef.current.off('object:modified');
+        fabricRef.current.off('object:added');
+        fabricRef.current.off('object:removed');
+        fabricRef.current.off('selection:created');
+        fabricRef.current.off('selection:updated');
+        fabricRef.current.off('selection:cleared');
+        fabricRef.current.off('before:path:created');
+        fabricRef.current.off('path:created');
+        fabricRef.current.dispose();
+      }
+      fabricRef.current = null;
     };
   }, []);
 

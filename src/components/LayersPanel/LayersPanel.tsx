@@ -1,18 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
+import type { DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  arrayMove,
 } from '@dnd-kit/sortable';
+import type { LayerItem } from '../../types';
 import { useCanvasStore } from '../../store/canvasStore';
 import { toast } from '../../store/toastStore';
 import LayerItemComponent from './LayerItem';
@@ -20,52 +23,149 @@ import Tooltip from '../UI/Tooltip';
 import ConfirmDialog from '../UI/ConfirmDialog';
 import './LayersPanel.css';
 
+// ── Ghost shown in DragOverlay ────────────────────────────────────────────────
+function LayerItemGhost({ layer }: { layer: LayerItem }) {
+  return (
+    <div className="layer-ghost">
+      <span className="layer-ghost-icon">{layer.isLayer ? '📁' : '◻'}</span>
+      <span className="layer-ghost-name">{layer.name}</span>
+    </div>
+  );
+}
+
+// ── SortableLayerItem wrapper ─────────────────────────────────────────────────
+function SortableLayerItem({
+  layer, isSelected, activeId, overId, isChild, children,
+}: {
+  layer: LayerItem;
+  isSelected: boolean;
+  activeId: string | null;
+  overId: string | null;
+  isChild?: boolean;
+  children?: React.ReactNode;
+}) {
+  const isDragging = activeId === layer.id;
+  const isOver     = overId === layer.id && activeId !== layer.id;
+  const isGroup    = !!layer.isLayer;
+
+  const cls = [
+    'sortable-layer-item',
+    isChild             ? 'is-child'   : '',
+    isDragging          ? 'is-dragging': '',
+    isOver && !isGroup  ? 'drop-above' : '',
+    isOver && isGroup   ? 'can-receive': '',
+  ].filter(Boolean).join(' ');
+
+  return (
+    <div className={cls}>
+      <LayerItemComponent layer={layer} isSelected={isSelected} indent={isChild} />
+      {children}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function LayersPanel() {
   const {
-    layers, selectedId, reorderLayers, canvasInstance,
-    addEmptyLayer, setSelectedId, setActiveLayerId, clearAllLayers,
+    layers, selectedId, canvasInstance,
+    setLayers, addEmptyLayer, setSelectedId, setActiveLayerId, clearAllLayers,
+    assignObjectToLayer,
   } = useCanvasStore();
 
   const [renamingOnCreate, setRenamingOnCreate] = useState<string | null>(null);
-  const [showClearDialog, setShowClearDialog] = useState(false);
+  const [showClearDialog, setShowClearDialog]   = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId]     = useState<string | null>(null);
 
-  // Root-level items: containers and objects without a parent
-  const rootLayers = layers.filter((l) => !l.parentLayerId);
-  // Children of a given container
-  const getChildren = (layerId: string) => layers.filter((l) => l.parentLayerId === layerId);
+  const rootLayers   = layers.filter((l) => !l.parentLayerId);
+  const childrenOf   = (id: string) => layers.filter((l) => l.parentLayerId === id);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  // ── Drag handlers ──────────────────────────────────────────────────────────
+
+  const handleDragStart = (e: DragStartEvent) => {
+    setActiveId(String(e.active.id));
+  };
+
+  const handleDragOver = (e: DragOverEvent) => {
+    setOverId(e.over ? String(e.over.id) : null);
+  };
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    setActiveId(null);
+    setOverId(null);
     if (!over || active.id === over.id) return;
 
+    const activeLayer = layers.find((l) => l.id === active.id);
+    const overLayer   = layers.find((l) => l.id === over.id);
+    if (!activeLayer || !overLayer) return;
+
+    // ── CAS 1 : drop SUR un calque groupe → imbriquer ──────────────────────
+    if (overLayer.isLayer && !activeLayer.isLayer && overLayer.id !== activeLayer.parentLayerId) {
+      assignObjectToLayer(activeLayer.id, overLayer.id);
+      return;
+    }
+
+    // ── CAS 2 : réordonnancement DANS le même groupe ────────────────────────
+    if (activeLayer.parentLayerId && activeLayer.parentLayerId === overLayer.parentLayerId) {
+      const siblings  = layers.filter((l) => l.parentLayerId === activeLayer.parentLayerId);
+      const oldIndex  = siblings.findIndex((l) => l.id === active.id);
+      const newIndex  = siblings.findIndex((l) => l.id === over.id);
+      if (oldIndex === newIndex) return;
+
+      const reordered = arrayMove(siblings, oldIndex, newIndex);
+      // Rebuild: all non-siblings first, then the siblings in their new order
+      const newLayers = [
+        ...layers.filter((l) => l.parentLayerId !== activeLayer.parentLayerId),
+        ...reordered,
+      ];
+      setLayers(newLayers);
+
+      // Sync z-index Fabric
+      if (canvasInstance) {
+        const total = canvasInstance.getObjects().length;
+        reordered.forEach((child, i) => {
+          const obj = canvasInstance.getObjects().find((o: any) => o.id === child.id);
+          if (obj) canvasInstance.moveTo(obj, Math.max(0, total - 1 - i));
+        });
+        canvasInstance.requestRenderAll();
+      }
+      return;
+    }
+
+    // ── CAS 3 : réordonnancement à la RACINE ────────────────────────────────
     const oldIndex = rootLayers.findIndex((l) => l.id === active.id);
     const newIndex = rootLayers.findIndex((l) => l.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
+    if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
 
-    const globalOld = layers.findIndex((l) => l.id === active.id);
-    const globalNew = layers.findIndex((l) => l.id === over.id);
-    reorderLayers(globalOld, globalNew);
+    const reordered = arrayMove(rootLayers, oldIndex, newIndex);
 
-    if (canvasInstance) {
-      const movedLayer = rootLayers[oldIndex];
-      if (!movedLayer.isLayer) {
-        const allObjects = canvasInstance.getObjects();
-        const movedObj = allObjects.find((o: any) => o.id === active.id);
-        if (movedObj) {
-          const targetZ = allObjects.length - 1 - newIndex;
-          canvasInstance.moveTo(movedObj, Math.max(0, targetZ));
-          canvasInstance.renderAll();
-        }
+    // Reconstruit layers en préservant les enfants sous chaque racine
+    const newLayers: LayerItem[] = [];
+    reordered.forEach((root) => {
+      newLayers.push(root);
+      newLayers.push(...layers.filter((l) => l.parentLayerId === root.id));
+    });
+    setLayers(newLayers);
+
+    // Sync z-index Fabric (objets racine seulement)
+    if (canvasInstance && !activeLayer.isLayer) {
+      const total = canvasInstance.getObjects().length;
+      const obj   = canvasInstance.getObjects().find((o: any) => o.id === active.id);
+      if (obj) {
+        canvasInstance.moveTo(obj, Math.max(0, total - 1 - newIndex));
+        canvasInstance.requestRenderAll();
       }
     }
   };
 
-  // ─── [+ Calque] ────────────────────────────────────────────────────────────
+  // ── [+ Calque] ─────────────────────────────────────────────────────────────
 
   const handleAddLayer = () => {
     const id = addEmptyLayer();
@@ -78,7 +178,7 @@ export default function LayersPanel() {
     return () => clearTimeout(t);
   }, [renamingOnCreate]);
 
-  // ─── Clear all ────────────────────────────────────────────────────────────
+  // ── Clear all ──────────────────────────────────────────────────────────────
 
   const handleClearAll = () => {
     if (!canvasInstance) return;
@@ -89,7 +189,9 @@ export default function LayersPanel() {
     toast.success('Canvas vidé ✓');
   };
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  const activeLayer = activeId ? layers.find((l) => l.id === activeId) : null;
 
   return (
     <aside className="layers-panel">
@@ -99,9 +201,7 @@ export default function LayersPanel() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span className="layer-count">{layers.length}</span>
           <Tooltip text="Nouveau calque vide" hint="Organisez vos objets en groupes logiques">
-            <button className="btn-add-layer" onClick={handleAddLayer}>
-              + Calque
-            </button>
+            <button className="btn-add-layer" onClick={handleAddLayer}>+ Calque</button>
           </Tooltip>
           <Tooltip text="Tout supprimer" hint="Vide le canvas">
             <button
@@ -129,53 +229,59 @@ export default function LayersPanel() {
           <div className="lp-tip">Utilisez + Calque pour créer un groupe logique</div>
         </div>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          {/* Contexte racine */}
           <SortableContext
             items={rootLayers.map((l) => l.id)}
             strategy={verticalListSortingStrategy}
           >
             <div className="layers-list">
               {rootLayers.map((layer) => (
-                <div key={layer.id} data-layerid={layer.id}>
-                  {/* Root item */}
-                  <LayerItemComponent
-                    layer={layer}
-                    isSelected={layer.id === selectedId}
-                  />
-
-                  {/* Children (rendered below the container, not in DnD) */}
+                <SortableLayerItem
+                  key={layer.id}
+                  layer={layer}
+                  isSelected={layer.id === selectedId}
+                  activeId={activeId}
+                  overId={overId}
+                >
+                  {/* Contexte enfants — imbriqué */}
                   {layer.isLayer && layer.isExpanded && (
-                    <div className="layer-children">
-                      {getChildren(layer.id).map((child) => (
-                        <div
-                          key={child.id}
-                          className="layer-child-tree-line"
-                          onClick={() => {
-                            if (!canvasInstance || child.locked) return;
-                            const obj = canvasInstance.getObjects().find((o: any) => o.id === child.id);
-                            if (obj) {
-                              canvasInstance.setActiveObject(obj);
-                              canvasInstance.renderAll();
-                              setSelectedId(child.id);
-                            }
-                          }}
-                        >
-                          <LayerItemComponent
-                            layer={child}
-                            isSelected={child.id === selectedId}
-                            indent
-                          />
+                    childrenOf(layer.id).length > 0 ? (
+                      <SortableContext
+                        items={childrenOf(layer.id).map((l) => l.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="layer-children-zone">
+                          {childrenOf(layer.id).map((child) => (
+                            <SortableLayerItem
+                              key={child.id}
+                              layer={child}
+                              isSelected={child.id === selectedId}
+                              activeId={activeId}
+                              overId={overId}
+                              isChild
+                            />
+                          ))}
                         </div>
-                      ))}
-                      {getChildren(layer.id).length === 0 && (
-                        <div className="layer-empty-hint">Glissez des objets ici</div>
-                      )}
-                    </div>
+                      </SortableContext>
+                    ) : (
+                      <div className="layer-empty-hint">Glissez des objets ici</div>
+                    )
                   )}
-                </div>
+                </SortableLayerItem>
               ))}
             </div>
           </SortableContext>
+
+          <DragOverlay dropAnimation={{ duration: 180, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+            {activeLayer ? <LayerItemGhost layer={activeLayer} /> : null}
+          </DragOverlay>
         </DndContext>
       )}
 

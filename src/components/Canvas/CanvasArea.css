@@ -245,10 +245,17 @@
 
 .canvas-grid-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
+  z-index: 2;
   pointer-events: none;
-  z-index: 10;
-  background-image: radial-gradient(circle, #00000030 1px, transparent 1px);
+  opacity: 0;
+  transition: opacity 0.2s;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
   background-size: 20px 20px;
+}
+
+.canvas-grid-overlay.visible {
+  opacity: 1;
 }

@@ -8,6 +8,7 @@ export type BrushType = 'pencil' | 'brush' | 'marker' | 'eraser';
 interface CanvasStore {
   layers: LayerItem[];
   selectedId: string | null;
+  selectedObject: FabricCanvas | null;
   history: HistoryState[];
   historyIndex: number;
   canvasInstance: FabricCanvas | null;
@@ -28,6 +29,7 @@ interface CanvasStore {
   setCanvas: (canvas: FabricCanvas) => void;
   setLayers: (layers: LayerItem[]) => void;
   setSelectedId: (id: string | null) => void;
+  setSelectedObject: (obj: FabricCanvas | null) => void;
   addLayer: (layer: LayerItem) => void;
   removeLayer: (id: string) => void;
   updateLayer: (id: string, updates: Partial<LayerItem>) => void;
@@ -52,11 +54,13 @@ interface CanvasStore {
   toggleLayerExpanded: (layerId: string) => void;
   setActiveLayerId: (id: string | null) => void;
   clearAllLayers: () => void;
+  resetCounters: () => void;
 }
 
 export const useCanvasStore = create<CanvasStore>((set, get) => ({
   layers: [],
   selectedId: null,
+  selectedObject: null,
   history: [],
   historyIndex: -1,
   canvasInstance: null,
@@ -79,6 +83,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   setLayers: (layers) => set({ layers }),
 
   setSelectedId: (id) => set({ selectedId: id }),
+  setSelectedObject: (obj) => set({ selectedObject: obj }),
 
   addLayer: (layer) =>
     set((state) => ({ layers: [layer, ...state.layers] })),
@@ -183,4 +188,6 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   setActiveLayerId: (id) => set({ activeLayerId: id }),
 
   clearAllLayers: () => set({ layers: [], selectedId: null, activeLayerId: null }),
+
+  resetCounters: () => set({ drawingPathCount: 0, emptyLayerCount: 0 }),
 }));

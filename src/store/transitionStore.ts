@@ -31,6 +31,8 @@ interface TransitionStore {
   states: CanvasState[];
   transitions: TransitionConfig[];
   activeStateId: string | null;
+  fromStateId: string | null;
+  toStateId: string | null;
   isPlaying: boolean;
   previewStateId: string | null;
 
@@ -42,6 +44,8 @@ interface TransitionStore {
   updateTransition: (id: string, patch: Partial<TransitionConfig>) => void;
   deleteTransition: (id: string) => void;
   setPlaying: (v: boolean) => void;
+  setFromStateId: (id: string | null) => void;
+  setToStateId: (id: string | null) => void;
   setStates: (states: CanvasState[]) => void;
   setTransitions: (transitions: TransitionConfig[]) => void;
 }
@@ -52,6 +56,8 @@ export const useTransitionStore = create<TransitionStore>((set, get) => ({
   states: [],
   transitions: [],
   activeStateId: null,
+  fromStateId: null,
+  toStateId: null,
   isPlaying: false,
   previewStateId: null,
 
@@ -63,7 +69,15 @@ export const useTransitionStore = create<TransitionStore>((set, get) => ({
     const fabricJSON = canvas.toJSON(['id', 'layerName', 'visible', 'locked']);
 
     const newState: CanvasState = { id, name: stateName, thumbnail, fabricJSON, timestamp: Date.now() };
-    set((s) => ({ states: [...s.states, newState], activeStateId: id }));
+    set((s) => {
+      const newStates = [...s.states, newState];
+      return {
+        states: newStates,
+        activeStateId: id,
+        fromStateId: newStates.length >= 2 ? newStates[0].id : s.fromStateId,
+        toStateId: newStates.length >= 2 ? newStates[newStates.length - 1].id : s.toStateId,
+      };
+    });
   },
 
   deleteState: (id) =>
@@ -108,6 +122,8 @@ export const useTransitionStore = create<TransitionStore>((set, get) => ({
     set((s) => ({ transitions: s.transitions.filter((t) => t.id !== id) })),
 
   setPlaying: (v) => set({ isPlaying: v }),
+  setFromStateId: (id) => set({ fromStateId: id }),
+  setToStateId: (id) => set({ toStateId: id }),
 
   setStates: (states) => set({ states }),
   setTransitions: (transitions) => set({ transitions }),

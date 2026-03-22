@@ -1,72 +1,141 @@
 import { fabric } from 'fabric';
 import jsPDF from 'jspdf';
 
-function downloadFile(dataUrl: string, filename: string) {
+// ─── Helper : vide le backgroundColor Fabric pendant l'export ─────────────────
+// Garantit que le fond géré par CSS (div arrière-plan) n'est pas inclus dans
+// les exports. Restore le fond et redessine après, quoi qu'il arrive.
+
+function isReady(canvas: fabric.Canvas | null): canvas is fabric.Canvas {
+  return !!canvas && !!(canvas as any).lowerCanvasEl;
+}
+
+function withCleanCanvas(canvas: fabric.Canvas, callback: (zoom: number) => void) {
+  const prevBg = canvas.backgroundColor;
+  const zoom   = canvas.getZoom();
+  canvas.backgroundColor = '';
+  canvas.renderAll();
+  try {
+    callback(zoom);
+  } finally {
+    canvas.backgroundColor = prevBg;
+    canvas.renderAll();
+  }
+}
+
+// ─── Download helper ──────────────────────────────────────────────────────────
+
+function downloadFile(url: string, filename: string) {
   const a = document.createElement('a');
-  a.href = dataUrl;
-  a.download = filename;
+  a.href           = url;
+  a.download       = filename;
+  a.style.display  = 'none';
+  document.body.appendChild(a);
   a.click();
-}
-
-export function toSVG(canvas: fabric.Canvas) {
-  const savedBg = canvas.backgroundColor;
-  canvas.backgroundColor = '';
-  const svgData = canvas.toSVG();
-  canvas.backgroundColor = savedBg;
-  const blob = new Blob([svgData], { type: 'image/svg+xml' });
-  const url = URL.createObjectURL(blob);
-  downloadFile(url, 'easystudio-export.svg');
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-export function toPNG(canvas: fabric.Canvas, scale = 2) {
-  const savedBg = canvas.backgroundColor;
-  canvas.backgroundColor = '';
-  const dataUrl = canvas.toDataURL({
-    format: 'png',
-    multiplier: scale,
+  // Nettoyage différé : laisse le navigateur démarrer le téléchargement
+  requestAnimationFrame(() => {
+    document.body.removeChild(a);
+    if (url.startsWith('blob:')) URL.revokeObjectURL(url);
   });
-  canvas.backgroundColor = savedBg;
-  downloadFile(dataUrl, 'easystudio-export.png');
 }
 
-export function toJPEG(canvas: fabric.Canvas, quality = 0.92) {
-  const dataUrl = canvas.toDataURL({
-    format: 'jpeg',
-    quality,
-    multiplier: 2,
+// ─── SVG ──────────────────────────────────────────────────────────────────────
+
+export function toSVG(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
+  withCleanCanvas(canvas, () => {
+    const svgData = canvas.toSVG();
+    // Retire les éventuels rects de fond injectés par Fabric
+    const clean = svgData.replace(
+      /<rect[^>]*fill="[^"]*"[^>]*x="0"[^>]*y="0"[^>]*\/>/g,
+      ''
+    );
+    const blob = new Blob([clean], { type: 'image/svg+xml' });
+    const url  = URL.createObjectURL(blob);
+    downloadFile(url, 'easystudio-export.svg'); // revoke géré par downloadFile
   });
-  downloadFile(dataUrl, 'easystudio-export.jpg');
 }
 
-export async function toWebP(canvas: fabric.Canvas, quality = 0.9) {
-  const pngUrl = canvas.toDataURL({ format: 'png', multiplier: 2 });
-  const img = new Image();
-  img.src = pngUrl;
-  await new Promise((res) => (img.onload = res));
-  const offscreen = document.createElement('canvas');
-  offscreen.width = img.naturalWidth;
-  offscreen.height = img.naturalHeight;
-  const ctx = offscreen.getContext('2d')!;
-  ctx.drawImage(img, 0, 0);
-  offscreen.toBlob(
-    (blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      downloadFile(url, 'easystudio-export.webp');
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    },
-    'image/webp',
-    quality
-  );
+// ─── PNG ──────────────────────────────────────────────────────────────────────
+
+export function toPNG(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
+  withCleanCanvas(canvas, (zoom) => {
+    const dataUrl = canvas.toDataURL({
+      format: 'png',
+      multiplier: (1 / zoom) * 2,
+    });
+    downloadFile(dataUrl, 'easystudio-export.png');
+  });
 }
 
-export async function toPDF(canvas: fabric.Canvas) {
-  const dataUrl = canvas.toDataURL({ format: 'png', multiplier: 2 });
-  const w = canvas.getWidth();
-  const h = canvas.getHeight();
-  const orientation = w > h ? 'landscape' : 'portrait';
-  const pdf = new jsPDF({ orientation, unit: 'px', format: [w, h] });
-  pdf.addImage(dataUrl, 'PNG', 0, 0, w, h);
-  pdf.save('easystudio-export.pdf');
+// ─── JPEG ─────────────────────────────────────────────────────────────────────
+
+export function toJPEG(canvas: fabric.Canvas | null, quality = 0.92) {
+  if (!isReady(canvas)) return;
+  withCleanCanvas(canvas, (zoom) => {
+    const dataUrl = canvas.toDataURL({
+      format: 'jpeg',
+      quality,
+      multiplier: (1 / zoom) * 2,
+    });
+    downloadFile(dataUrl, 'easystudio-export.jpg');
+  });
+}
+
+// ─── WebP ─────────────────────────────────────────────────────────────────────
+
+export function toWebP(canvas: fabric.Canvas | null, quality = 0.9) {
+  if (!isReady(canvas)) return;
+  withCleanCanvas(canvas, (zoom) => {
+    // Fabric ne génère pas de WebP natif → PNG intermédiaire puis conversion
+    const pngDataUrl = canvas.toDataURL({
+      format: 'png',
+      multiplier: (1 / zoom) * 2,
+    });
+
+    const logW = Math.round(canvas.getWidth()  / zoom * 2);
+    const logH = Math.round(canvas.getHeight() / zoom * 2);
+
+    const img    = new Image();
+    img.onload = () => {
+      const tmp = document.createElement('canvas');
+      tmp.width  = logW;
+      tmp.height = logH;
+      const ctx = tmp.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, logW, logH);
+      tmp.toBlob(
+        (blob) => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          downloadFile(url, 'easystudio-export.webp'); // revoke géré par downloadFile
+        },
+        'image/webp',
+        quality
+      );
+    };
+    img.src = pngDataUrl;
+  });
+}
+
+// ─── PDF ──────────────────────────────────────────────────────────────────────
+
+export async function toPDF(canvas: fabric.Canvas | null) {
+  if (!isReady(canvas)) return;
+  return new Promise<void>((resolve) => {
+    withCleanCanvas(canvas, (zoom) => {
+      const dataUrl = canvas.toDataURL({
+        format: 'png',
+        multiplier: (1 / zoom) * 2,
+      });
+
+      const logW = Math.round(canvas.getWidth()  / zoom);
+      const logH = Math.round(canvas.getHeight() / zoom);
+      const orientation = logW > logH ? 'landscape' : 'portrait';
+
+      const pdf = new jsPDF({ orientation, unit: 'px', format: [logW, logH] });
+      pdf.addImage(dataUrl, 'PNG', 0, 0, logW, logH);
+      pdf.save('easystudio-export.pdf');
+      resolve();
+    });
+  });
 }

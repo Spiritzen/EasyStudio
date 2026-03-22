@@ -35,7 +35,6 @@ export default function LayerItemComponent({ layer, isSelected, indent }: Props)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: layer.id,
-    disabled: !!indent,
   });
 
   const [renaming, setRenaming] = useState(false);
@@ -214,15 +213,19 @@ export default function LayerItemComponent({ layer, isSelected, indent }: Props)
       const obj = canvasInstance.getObjects().find((o: any) => o.id === layer.id);
       if (!obj) return;
       (obj as any).clone((cloned: any) => {
+        const clonedId = `obj_clone_${Date.now()}`;
         cloned.set({
           left: (obj.left ?? 0) + 10,
           top: (obj.top ?? 0) + 10,
-          id: `obj_clone_${Date.now()}`,
+          id: clonedId,
           layerName: `${layer.name} (copie)`,
         });
         canvasInstance.add(cloned);
         canvasInstance.setActiveObject(cloned);
         canvasInstance.renderAll();
+        if (layer.parentLayerId) {
+          setTimeout(() => assignObjectToLayer(clonedId, layer.parentLayerId!), 50);
+        }
       });
     }
   };
@@ -235,8 +238,15 @@ export default function LayerItemComponent({ layer, isSelected, indent }: Props)
     const obj = canvasInstance.getObjects().find((o: any) => o.id === layer.id);
     if (obj) { canvasInstance.bringForward(obj); canvasInstance.requestRenderAll(); }
     const allLayers = useCanvasStore.getState().layers;
-    const idx = allLayers.findIndex((l) => l.id === layer.id);
-    if (idx > 0) reorderLayers(idx, idx - 1);
+    const scope = layer.parentLayerId
+      ? allLayers.filter((l) => l.parentLayerId === layer.parentLayerId)
+      : allLayers.filter((l) => !l.parentLayerId);
+    const idx = scope.findIndex((l) => l.id === layer.id);
+    if (idx > 0) {
+      const globalIdx = allLayers.findIndex((l) => l.id === layer.id);
+      const globalTarget = allLayers.findIndex((l) => l.id === scope[idx - 1].id);
+      reorderLayers(globalIdx, globalTarget);
+    }
   };
 
   const handleMoveDown = () => {
@@ -245,8 +255,15 @@ export default function LayerItemComponent({ layer, isSelected, indent }: Props)
     const obj = canvasInstance.getObjects().find((o: any) => o.id === layer.id);
     if (obj) { canvasInstance.sendBackwards(obj); canvasInstance.requestRenderAll(); }
     const allLayers = useCanvasStore.getState().layers;
-    const idx = allLayers.findIndex((l) => l.id === layer.id);
-    if (idx < allLayers.length - 1) reorderLayers(idx, idx + 1);
+    const scope = layer.parentLayerId
+      ? allLayers.filter((l) => l.parentLayerId === layer.parentLayerId)
+      : allLayers.filter((l) => !l.parentLayerId);
+    const idx = scope.findIndex((l) => l.id === layer.id);
+    if (idx < scope.length - 1) {
+      const globalIdx = allLayers.findIndex((l) => l.id === layer.id);
+      const globalTarget = allLayers.findIndex((l) => l.id === scope[idx + 1].id);
+      reorderLayers(globalIdx, globalTarget);
+    }
   };
 
   // ─── Context menu ─────────────────────────────────────────────────────────

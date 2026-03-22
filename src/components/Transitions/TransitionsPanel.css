@@ -27,6 +27,20 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #9b8eff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tr-state-count {
+  background: var(--es-gold-dim);
+  border: 1px solid var(--es-gold-border);
+  color: var(--es-gold);
+  border-radius: 10px;
+  font-size: 10px;
+  padding: 0 6px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .tr-empty {

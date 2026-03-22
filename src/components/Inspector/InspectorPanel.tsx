@@ -14,8 +14,19 @@ interface ObjProps {
 
 const DEFAULT: ObjProps = { x: 0, y: 0, w: 0, h: 0, angle: 0, opacity: 100 };
 
+function propsFromObject(obj: fabric.Object): ObjProps {
+  return {
+    x:       Math.round(obj.left    || 0),
+    y:       Math.round(obj.top     || 0),
+    w:       Math.round(obj.getScaledWidth?.()  ?? obj.width  ?? 0),
+    h:       Math.round(obj.getScaledHeight?.() ?? obj.height ?? 0),
+    angle:   Math.round(obj.angle   || 0),
+    opacity: Math.round((obj.opacity ?? 1) * 100),
+  };
+}
+
 export default function InspectorPanel() {
-  const { selectedId, canvasInstance } = useCanvasStore();
+  const { selectedId, selectedObject, canvasInstance } = useCanvasStore();
   const [props, setProps] = useState<ObjProps>(DEFAULT);
   const [objType, setObjType] = useState<string>('');
 
@@ -24,19 +35,13 @@ export default function InspectorPanel() {
     return canvasInstance.getObjects().find((o) => (o as any).id === selectedId) ?? null;
   };
 
+  // Sync when selection changes (selectedId) or object is mutated (selectedObject ref changes)
   useEffect(() => {
-    const obj = getSelectedObject();
+    const obj = selectedObject ?? getSelectedObject();
     if (!obj) { setProps(DEFAULT); setObjType(''); return; }
     setObjType(obj.type || '');
-    setProps({
-      x: Math.round(obj.left || 0),
-      y: Math.round(obj.top || 0),
-      w: Math.round(obj.getScaledWidth?.() ?? obj.width ?? 0),
-      h: Math.round(obj.getScaledHeight?.() ?? obj.height ?? 0),
-      angle: Math.round(obj.angle || 0),
-      opacity: Math.round((obj.opacity ?? 1) * 100),
-    });
-  }, [selectedId, canvasInstance]);
+    setProps(propsFromObject(obj));
+  }, [selectedId, selectedObject, canvasInstance]);
 
   const applyChange = (key: string, value: number) => {
     const obj = getSelectedObject();

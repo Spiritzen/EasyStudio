@@ -169,12 +169,7 @@ export default function CanvasArea({ onOpenAI }: Props) {
                 height: canvasSize.h,
               }}
             />
-            {showGrid && (
-              <div
-                className="canvas-grid-overlay"
-                style={{ width: canvasSize.w, height: canvasSize.h }}
-              />
-            )}
+            <div className={`canvas-grid-overlay${showGrid ? ' visible' : ''}`} />
             <canvas ref={canvasRef} />
           </div>
         </div>
