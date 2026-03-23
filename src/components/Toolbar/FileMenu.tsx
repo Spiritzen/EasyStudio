@@ -86,7 +86,8 @@ export default function FileMenu({ onClose, onNewProject, onOpenAI }: Props) {
   };
 
   const handleOpen = () => {
-    onClose();
+    // Click AVANT onClose() — l'input doit être dans le DOM quand le file picker s'ouvre.
+    // onClose() est appelé dans handleFileChange après traitement.
     fileInputRef.current?.click();
   };
 
@@ -98,13 +99,14 @@ export default function FileMenu({ onClose, onNewProject, onOpenAI }: Props) {
         title: 'Ouvrir un projet',
         message: 'Le canvas actuel sera remplacé. Sauvegarder avant ?',
         buttons: [
-          { label: 'Sauvegarder',      variant: 'primary', onClick: () => { saveProject(); openProjectFile(file); } },
-          { label: 'Ouvrir quand même', variant: 'danger',  onClick: () => openProjectFile(file) },
-          { label: 'Annuler',           variant: 'ghost',   onClick: () => {} },
+          { label: 'Sauvegarder',       variant: 'primary', onClick: () => { saveProject(); openProjectFile(file); onClose(); } },
+          { label: 'Ouvrir quand même', variant: 'danger',  onClick: () => { openProjectFile(file); onClose(); } },
+          { label: 'Annuler',           variant: 'ghost',   onClick: () => { onClose(); } },
         ],
       });
     } else {
       openProjectFile(file);
+      onClose();
     }
     e.target.value = '';
   };
@@ -151,7 +153,8 @@ export default function FileMenu({ onClose, onNewProject, onOpenAI }: Props) {
   };
 
   const handleQuickImport = () => {
-    onClose();
+    // Click AVANT onClose() — même raison que handleOpen.
+    // onClose() est déjà appelé dans handleImageFileChange après import.
     imageInputRef.current?.click();
   };
 

@@ -63,6 +63,13 @@
 - **Menu contextuel clic droit** — Renommer · Dupliquer · Monter · Descendre · Supprimer
 - Bouton tout supprimer avec confirmation
 
+### 🎯 Effets & Pivot
+- **Point de pivot visuel** — grille 3×3 style Figma
+  pour contrôler le centre de rotation
+- Blur fonctionnel sur toutes les formes
+  vectorielles (Rectangle, Cercle, Triangle, Texte)
+- Pivot préservé lors des transitions animées
+
 ### ⚡ Transitions & Animations
 - Système d'États A → B (snapshots du canvas)
 - 8 types — Fondu · Glissement · Zoom · Rotation · Retournement · Morphose
@@ -72,6 +79,11 @@
 - **Export CSS `@keyframes` prêt à coller dans votre projet**
 - **Export HTML animé autonome téléchargeable**
 - Auto-sélection États A/B après capture
+- **Bouton Reverse** — joue la transition
+  en sens inverse (B → A)
+- Rotation et Flip inversés correctement
+  en mode Reverse
+- Pivot custom pris en compte dans les animations
 
 ### 📦 Export multi-format
 - SVG → vectoriel, scalable à l'infini
@@ -193,6 +205,21 @@ Le format `.easylogo` est un fichier JSON lisible et portable :
 ---
 
 ## 📋 Changelog
+
+### v1.2.2 — Pivot & Reverse
+- ✨ Point de pivot visuel 3×3 style Figma
+- ✨ Bouton Reverse transitions — joue B→A
+- ✨ Rotate/Flip correctement inversés en Reverse
+- ✨ Pivot sérialisé et préservé dans les transitions
+- 🐛 Blur fonctionnel sur formes vectorielles
+- 🐛 Import image depuis Fichier → corrigé
+- 🐛 centeredRotation false sur pivot custom
+- 🔒 Nettoyage repo — .claude/ et audits retirés
+
+### v1.2.1 — Blur vectoriel + nettoyage
+- ✨ Blur sur Rectangle, Cercle, Triangle, Texte
+- 🔒 .gitignore optimisé React/Vite/TypeScript
+- 🔒 Config Claude Code retirée du repo public
 
 ### v1.1 — UX & Stabilité
 - ✨ Drag & drop hiérarchie style Figma — racine ET dans les groupes

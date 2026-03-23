@@ -20,6 +20,18 @@ interface ObjProps {
   angle: number; opacity: number;
 }
 
+const PIVOT_POINTS = [
+  { ox: 'left',   oy: 'top'    },
+  { ox: 'center', oy: 'top'    },
+  { ox: 'right',  oy: 'top'    },
+  { ox: 'left',   oy: 'center' },
+  { ox: 'center', oy: 'center' },
+  { ox: 'right',  oy: 'center' },
+  { ox: 'left',   oy: 'bottom' },
+  { ox: 'center', oy: 'bottom' },
+  { ox: 'right',  oy: 'bottom' },
+];
+
 const DEFAULT: ObjProps = { x: 0, y: 0, w: 0, h: 0, angle: 0, opacity: 100 };
 
 function propsFromObject(obj: fabric.Object): ObjProps {
@@ -76,9 +88,45 @@ export default function InspectorPanel() {
     ungroupSelected(canvasInstance);
   };
 
+  const currentOX = (selectedObject as any)?.originX as string ?? 'center';
+  const currentOY = (selectedObject as any)?.originY as string ?? 'center';
+
   const isGroup = objType === 'group';
   const isText  = objType === 'i-text' || objType === 'text';
   const isPath  = objType === 'path';
+
+  const handlePivotChange = (ox: string, oy: string) => {
+    const obj = getSelectedObject();
+    if (!obj || !canvasInstance) return;
+
+    // Sauvegarde le centre visuel absolu AVANT de changer l'origine
+    const br      = obj.getBoundingRect(true);
+    const centerX = br.left + br.width  / 2;
+    const centerY = br.top  + br.height / 2;
+
+    const w = obj.getScaledWidth();
+    const h = obj.getScaledHeight();
+
+    // Applique les nouvelles origines
+    (obj as any).set({ originX: ox, originY: oy, centeredRotation: false });
+
+    // Recalcule left/top pour que l'objet ne saute pas visuellement
+    let newLeft = centerX;
+    let newTop  = centerY;
+    if (ox === 'left')   newLeft = centerX - w / 2;
+    if (ox === 'right')  newLeft = centerX + w / 2;
+    if (oy === 'top')    newTop  = centerY - h / 2;
+    if (oy === 'bottom') newTop  = centerY + h / 2;
+
+    obj.set({ left: newLeft, top: newTop });
+    obj.setCoords();
+    canvasInstance.requestRenderAll();
+
+    // Force un nouvel objet wrapper pour déclencher la réactivité Zustand
+    useCanvasStore.getState().setSelectedObject({ ...obj } as any);
+    // Puis remet la vraie référence pour que les autres handlers trouvent l'objet
+    setTimeout(() => useCanvasStore.getState().setSelectedObject(obj), 0);
+  };
 
   const handleClosePath = () => {
     const obj = getSelectedObject() as any;
@@ -167,6 +215,19 @@ export default function InspectorPanel() {
             <div className="prop-labels">
               <span>X</span><span>Y</span><span>Larg</span>
               <span>Haut</span><span>Rot</span><span>Opac</span>
+            </div>
+            <div className="pivot-section">
+              <span className="pivot-label">Pivot</span>
+              <div className="pivot-grid">
+                {PIVOT_POINTS.map(({ ox, oy }, i) => (
+                  <button
+                    key={i}
+                    className={`pivot-point${ox === currentOX && oy === currentOY ? ' active' : ''}`}
+                    onClick={() => handlePivotChange(ox, oy)}
+                    title={`${oy} ${ox}`}
+                  />
+                ))}
+              </div>
             </div>
           </section>
 

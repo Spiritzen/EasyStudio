@@ -128,6 +128,43 @@ export default function TransitionsPanel() {
     cancelRef.current = cancel;
   };
 
+  // Inverse le type d'animation pour les transitions directionnelles
+  const getReverseType = (type: TransitionType): TransitionType => {
+    const map: Partial<Record<TransitionType, TransitionType>> = {
+      slideLeft:  'slideRight',
+      slideRight: 'slideLeft',
+      slideUp:    'slideDown',
+      slideDown:  'slideUp',
+      zoomIn:     'zoomOut',
+      zoomOut:    'zoomIn',
+    };
+    return map[type] ?? type;
+  };
+
+  const handleReverse = () => {
+    if (!canvasInstance || isPlaying || !canPlay) return;
+    const fromState = states.find((s) => s.id === fromStateId);
+    const toState   = states.find((s) => s.id === toStateId);
+    if (!fromState || !toState) return;
+    const config: TransitionConfig = {
+      id: 'preview',
+      fromStateId: fromStateId!,
+      toStateId:   toStateId!,
+      ...draft,
+      type: getReverseType(draft.type), // ← sens inverse pour les slides/zoom
+    };
+    cancelRef.current?.();
+    setPlaying(true);
+    loopRef.current = false;
+    // Départ = état B (toState), arrivée = état A (fromState)
+    const { cancel } = playTransition(
+      canvasInstance, toState.fabricJSON, fromState.fabricJSON, config,
+      () => { setPlaying(false); cancelRef.current = null; },
+      true
+    );
+    cancelRef.current = cancel;
+  };
+
   const handleStop = () => {
     loopRef.current = false;
     cancelRef.current?.();
@@ -315,6 +352,14 @@ export default function TransitionsPanel() {
           title="Jouer"
         >
           ▶ Jouer
+        </button>
+        <button
+          className="tr-ctrl-btn tr-reverse"
+          onClick={handleReverse}
+          disabled={!canPlay || isPlaying}
+          title="Jouer en sens inverse"
+        >
+          ⟵ Reverse
         </button>
         <button
           className={`tr-ctrl-btn tr-loop ${looping ? 'active' : ''}`}

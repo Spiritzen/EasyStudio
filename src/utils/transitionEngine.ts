@@ -98,7 +98,8 @@ export function playTransition(
   fromJSON: object,
   toJSON: object,
   config: TransitionConfig,
-  onDone?: () => void
+  onDone?: () => void,
+  isReverse = false
 ): { cancel: () => void } {
   if (!canvas) return { cancel: () => {} };
 
@@ -113,9 +114,20 @@ export function playTransition(
     }
   };
 
+  // Restaure centeredRotation sur les objets qui ont un pivot custom
+  const restorePivot = () => {
+    canvas.getObjects().forEach((obj: any) => {
+      if (obj.originX !== 'center' || obj.originY !== 'center') {
+        obj.set({ centeredRotation: false });
+        obj.setCoords();
+      }
+    });
+  };
+
   // Load FROM state, then kick off the RAF loop
   canvas.loadFromJSON(fromJSON, () => {
     if (cancelled) return;
+    restorePivot();
     canvas.backgroundColor = '';
     canvas.renderAll();
 
@@ -179,11 +191,11 @@ export function playTransition(
             obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'rotate':
-            obj.set('angle',   lerp(init.angle, init.angle + 180, eased));
+            obj.set('angle',   lerp(init.angle, init.angle + (isReverse ? -180 : 180), eased));
             obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'flip':
-            obj.set('scaleX',  lerp(init.scaleX, 0, eased));
+            obj.set('scaleX',  lerp(init.scaleX, isReverse ? -init.scaleX : 0, eased));
             obj.set('opacity', lerp(init.opacity, 0, eased));
             break;
           case 'morph':
@@ -202,6 +214,7 @@ export function playTransition(
         if (!cancelled) {
           canvas.loadFromJSON(toJSON, () => {
             if (!cancelled) {
+              restorePivot();
               canvas.backgroundColor = '';
               canvas.renderAll();
               onDone?.();

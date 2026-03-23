@@ -250,3 +250,47 @@
   border-color: #7c6bc7;
   color: #d4b8ff;
 }
+
+/* ── Pivot grid ─────────────────────────────────────────────────────────── */
+
+.pivot-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.pivot-label {
+  font-size: 9px;
+  color: #8b8ba7;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.pivot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 12px);
+  grid-template-rows: repeat(3, 12px);
+  gap: 3px;
+}
+
+.pivot-point {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid #4a4458;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.pivot-point:hover {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.2);
+}
+
+.pivot-point.active {
+  background: #7c3aed;
+  border-color: #7c3aed;
+}

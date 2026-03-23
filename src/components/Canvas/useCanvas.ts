@@ -91,7 +91,7 @@ export function useCanvas(containerRef: React.RefObject<HTMLDivElement>) {
 
   const saveHistory = useCallback(() => {
     if (!fabricRef.current) return;
-    const json = JSON.stringify(fabricRef.current.toJSON(['id', 'layerName']));
+    const json = JSON.stringify(fabricRef.current.toJSON(['id', 'layerName', 'centeredRotation']));
     pushHistory(json);
     syncLayers();
   }, [pushHistory, syncLayers]);
@@ -193,12 +193,12 @@ export function useCanvas(containerRef: React.RefObject<HTMLDivElement>) {
         fc.setActiveObject(path);
         setSelectedId(path.id);
 
-        const json = JSON.stringify(fc.toJSON(['id', 'layerName']));
+        const json = JSON.stringify(fc.toJSON(['id', 'layerName', 'centeredRotation']));
         store.pushHistory(json);
         syncLayers();
       });
 
-      pushHistory(JSON.stringify(fc.toJSON(['id', 'layerName'])));
+      pushHistory(JSON.stringify(fc.toJSON(['id', 'layerName', 'centeredRotation'])));
 
       // Auto-fit once canvas is ready
       if (containerRef.current && (fc as any).lowerCanvasEl) {

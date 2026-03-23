@@ -283,6 +283,13 @@
 }
 .tr-play:not(:disabled):hover { background: #7c6bdb; }
 
+.tr-reverse {
+  background: transparent;
+  color: #f0a500;
+  border-color: rgba(240, 165, 0, 0.4);
+}
+.tr-reverse:not(:disabled):hover { background: rgba(240, 165, 0, 0.1); }
+
 .tr-loop {
   background: transparent;
   color: #9b8eff;

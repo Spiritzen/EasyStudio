@@ -99,7 +99,7 @@ export const useTransitionStore = create<TransitionStore>((set, get) => ({
     const id = `state_${stateCounter}_${Date.now()}`;
     const stateName = name ?? `État ${stateCounter}`;
     const thumbnail = canvas.toDataURL({ format: 'png', multiplier: 0.15 });
-    const fabricJSON = canvas.toJSON(['id', 'layerName', 'visible', 'locked']);
+    const fabricJSON = canvas.toJSON(['id', 'layerName', 'visible', 'locked', 'centeredRotation']);
 
     const newState: CanvasState = { id, name: stateName, thumbnail, fabricJSON, timestamp: Date.now() };
     set((s) => {
